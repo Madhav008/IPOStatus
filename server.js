@@ -112,8 +112,6 @@ app.post('/bigshare', async (req, res) => {
     console.error('Error:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
-
-
 })
 
 
@@ -225,7 +223,10 @@ const sleep = (milliseconds) => {
 
 const bigshare = async (panList) => {
   const ipoList = await IPOList();
-  const browser = await puppeteer.launch({ headless: false });
+  // const browser = await puppeteer.launch({ headless: false });
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
   const page = await browser.newPage();
 
   try {
