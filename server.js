@@ -58,31 +58,23 @@ function findColumnIndex(sheet, columnName) {
 }
 
 app.post('/bigshare', async (req, res) => {
-
-
   try {
     // Check if a file was uploaded
     if (!req.files || Object.keys(req.files).length === 0) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
-
     // Access the uploaded file
     const uploadedFile = req.files.file; // Assuming the file input has the name 'file'
-
     // Read the Excel file
     const workbook = xlsx.read(uploadedFile.data, { type: 'buffer' });
-
     // Assuming your data is in the first sheet (change as needed)
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
-
     // Find the column index of the PAN column
     const panColumnIndex = findColumnIndex(sheet, 'PAN NO');
-
     if (panColumnIndex === -1) {
       return res.status(400).json({ error: 'PAN NO column not found' });
     }
-
     // Collect all PANs in the sheet
     const range = xlsx.utils.decode_range(sheet['!ref']);
     const panList = [];
@@ -90,24 +82,31 @@ app.post('/bigshare', async (req, res) => {
       const cellAddress = { c: panColumnIndex, r: rowNum };
       const cellRef = xlsx.utils.encode_cell(cellAddress);
       const pan = sheet[cellRef] ? sheet[cellRef].v : null;
-
       if (pan) {
         panList.push(pan);
       }
     }
-    const data = await bigshare(panList);
+    const ipo = await bigshare(panList);
+    const failed_data = ipo.failedPans
+    const data = ipo.ipoStatusList
     // Convert JSON data to worksheet
     const ws = xlsx.utils.json_to_sheet(data);
-
     // Create a workbook and add the worksheet
     const wb = xlsx.utils.book_new();
     xlsx.utils.book_append_sheet(wb, ws, 'IpoStatus');
-
     // Write the workbook to a file
     xlsx.writeFile(wb, 'IpoStatus.xlsx');
-
-    res.json({ result: data });
-
+    // Check if there are failed PANs before creating a workbook and writing to a file
+    if (failed_data.length > 0) {
+      // Convert failed IPO data to worksheet
+      const failedWs = xlsx.utils.json_to_sheet(failed_data.map(pan => ({ PAN: pan, Status: 'Failed' })));
+      // Create a workbook and add the worksheet for failed data
+      const failedWb = xlsx.utils.book_new();
+      xlsx.utils.book_append_sheet(failedWb, failedWs, 'FailedIpoList');
+      // Write the workbook to a file for failed data
+      xlsx.writeFile(failedWb, 'FailedIpoList.xlsx');
+    }
+    res.json({ result: data, failed_data: failed_data });
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -135,12 +134,6 @@ app.get('/linkintime', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
-
-
-
-
-
-
 
 
 
@@ -184,25 +177,24 @@ const uploadImageAndReceiveResponse = async () => {
   }
 };
 
+
 //TODO pending work of purva
 
 
-
-
 const IPOList = async () => {
-  const browser = await puppeteer.launch({ headless: true });
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
   const page = await browser.newPage();
 
   try {
     // Navigate to the website
-    await page.goto('https://ipo.bigshareonline.com/IPO_Status.html'); // Replace with the actual URL
-
+    await page.goto('https://ipo.bigshareonline.com/IPO_Status.html');
     // Wait for the page to load
-    await page.waitForSelector('#ddlCompany'); // Replace 'ddlCompany' with the actual ID of the select element
-
+    await page.waitForSelector('#ddlCompany');
     // Extract uncommented options from the select element
     const options = await page.evaluate(() => {
-      const selectElement = document.querySelector('#ddlCompany'); // Replace 'ddlCompany' with the actual ID of the select element
+      const selectElement = document.querySelector('#ddlCompany');
       const optionElements = selectElement.querySelectorAll('option:not(:disabled)'); // Select only uncommented options
       const optionValues = Array.from(optionElements).map(option => option.textContent.trim() + "--" + option.value);
       return optionValues;
@@ -223,9 +215,10 @@ const sleep = (milliseconds) => {
 
 const bigshare = async (panList) => {
   const ipoList = await IPOList();
-  // const browser = await puppeteer.launch({ headless: false });
+
   const browser = await puppeteer.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox']
+    // headless: false
   });
   const page = await browser.newPage();
 
@@ -244,40 +237,49 @@ const bigshare = async (panList) => {
         await page.type('#txtpan', `${PAN}`);
         const sessionData = await page.evaluate(() => sessionStorage.getItem('captchaCode'));
         const captchadata = JSON.parse(sessionData);
-        await sleep(100);
-        await page.type('#captcha-input', captchadata + '');
-        await page.click('#btnSearch');
-        await page.waitForSelector('#dPrint');
-        await sleep(200);
 
-        const data = await page.evaluate(() => {
-          const tableRows = document.querySelectorAll('#dPrint table tbody tr');
-          const rowData = {};
+        // Check if captchadata is present
+        if (captchadata) {
+          await sleep(100);
+          await page.type('#captcha-input', captchadata + '');
+          await page.click('#btnSearch');
+          await page.waitForSelector('#dPrint');
+          await sleep(200);
 
-          tableRows.forEach((row) => {
-            const th = row.querySelector('th');
-            const td = row.querySelector('td');
+          const data = await page.evaluate(() => {
+            const tableRows = document.querySelectorAll('#dPrint table tbody tr');
+            const rowData = {};
 
-            if (th && td) {
-              const key = th.textContent.trim();
-              const value = td.textContent.trim();
-              rowData[key] = value;
-            }
+            tableRows.forEach((row) => {
+              const th = row.querySelector('th');
+              const td = row.querySelector('td');
+
+              if (th && td) {
+                const key = th.textContent.trim();
+                const value = td.textContent.trim();
+                rowData[key] = value;
+              }
+            });
+
+            return rowData;
           });
 
-          return rowData;
-        });
+          await page.click('#btnclear');
+          await page.reload();
+          await sleep(100);
 
-        await page.click('#btnclear');
-        await sleep(100);
+          // Remove PAN from failedPans after successful retry
+          const index = failedPans.indexOf(PAN);
+          if (index !== -1) {
+            failedPans.splice(index, 1);
+          }
 
-        // Remove PAN from failedPans after successful retry
-        const index = failedPans.indexOf(PAN);
-        if (index !== -1) {
-          failedPans.splice(index, 1);
+          return data;
+        } else {
+          console.error(`Captcha data not available for PAN ${PAN}. Adding to failedPans.`);
+          failedPans.push(PAN);
+          return null;
         }
-
-        return data;
       } catch (error) {
         console.error(`Failed to retrieve data for PAN ${PAN} even after retry.`);
         return null;
@@ -293,13 +295,19 @@ const bigshare = async (panList) => {
           const data = await retryBigshare(PAN);
 
           if (data) {
-            console.log(`Data for PAN ${PAN}:`, JSON.stringify(data, null, 2));
-            ipoStatusList.push(data);
+
+            var finaldata = {
+              ...data,
+              PAN: PAN
+            }
+            console.log(`Data for PAN ${PAN}:`, JSON.stringify(finaldata, null, 2));
+            ipoStatusList.push(finaldata);
             success = true;
           } else {
             console.error(`Failed attempt for PAN ${PAN}. Retrying...`);
             retries--;
             await sleep(1000);
+            await page.reload()
           }
         } catch (error) {
           console.error(`Error processing PAN ${PAN}:`, error);
@@ -321,7 +329,7 @@ const bigshare = async (panList) => {
       }
     }
 
-    return ipoStatusList;
+    return { ipoStatusList, failedPans };
   } catch (error) {
     console.error('Error:', error);
   } finally {
@@ -332,7 +340,10 @@ const bigshare = async (panList) => {
 
 
 const karvyCaptcha = async () => {
-  const browser = await puppeteer.launch({ headless: false });
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    // headless: false
+  });
   const page = await browser.newPage();
 
   // Navigate to the webpage
