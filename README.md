@@ -1,8 +1,21 @@
-# React + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+#   Features
+    [*] Upload the excel
+    [*] Add the Big Share
+        [*] Break the capthca
+        [*] Add the PAN 
+        [*] Get the Data 
+        [*] Return the excel
+    [*] Add the LinkinTime
+        [*] Get the list of ipo's
+        [*] Get the data
+    [] Setup next.js auth
+    [] Setup the database
+    [] Setup the page to get the data of the ipo list 
+    [] Select the Site
+    [] Select the IPO list from the specific site
+    [] Add the Karvy
+        [] Get the Capthcha
+        [] Get the data
+        [] return the excel
+    [] Add the Purva
+    [] Add the Skyline

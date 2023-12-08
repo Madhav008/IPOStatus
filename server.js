@@ -121,7 +121,9 @@ app.get('/linkintime', async (req, res) => {
   const pan = 'EBDPR5546G';
 
   // const { clientId, pan } = req.body
-  const data = await executeCommand(clientId, pan)
+  const data = await getLinkinIpoList()
+
+  // const data = await executeCommand(clientId, pan)
   const val = JSON.parse(data);
 
   console.log(val.d)
@@ -134,6 +136,20 @@ app.get('/linkintime', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+
+
+const getLinkinIpoList = async (clientId, pan) => {
+  return new Promise((resolve, reject) => {
+    exec(`bash getIpoLiist.sh`, (error, stdout, stderr) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(stdout);
+      }
+    });
+  });
+};
 
 
 
@@ -297,8 +313,8 @@ const bigshare = async (panList) => {
           if (data) {
 
             var finaldata = {
-              ...data,
-              PAN: PAN
+              PAN: PAN,
+              ...data
             }
             console.log(`Data for PAN ${PAN}:`, JSON.stringify(finaldata, null, 2));
             ipoStatusList.push(finaldata);
