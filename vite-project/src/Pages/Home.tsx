@@ -10,7 +10,7 @@ const Home = () => {
     const [loading, setLoading] = useState(false)
     const [lsite, setSite] = useState('')
     const fetchData = async (selectedSite: string) => {
-        const res = await fetch(`http://https://ipoapo.fanxange.live/getIpoList/${selectedSite}`);
+        const res = await fetch(`https://ipoapi.fanxange.live/getIpoList/${selectedSite}`);
         const data = await res.json();
         // Further processing with the data if needed
         return data;
