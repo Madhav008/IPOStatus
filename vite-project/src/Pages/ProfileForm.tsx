@@ -28,7 +28,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
             const { success } = data || {};
             if (success) {
                 // Create the download URL
-                const downloadUrl = `http://localhost:3001${success}`;
+                const downloadUrl = `http://https://ipoapo.fanxange.live${success}`;
 
                 // Open the download URL in a new tab
                 const newTab = window.open(downloadUrl, '_blank');
@@ -50,7 +50,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
             const { failed } = data || {};
             if (failed) {
                 // Create the download URL
-                const downloadUrl = `http://localhost:3001${failed}`;
+                const downloadUrl = `http://https://ipoapo.fanxange.live${failed}`;
 
                 // Open the download URL in a new tab
                 const newTab = window.open(downloadUrl, '_blank');
@@ -105,12 +105,12 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
     };
 
     const getLinkinIpoData = async () => {
-        const url = 'http://localhost:3001/linkintime';
+        const url = 'http://https://ipoapo.fanxange.live/linkintime';
         return getIpoData(url);
     };
 
     const getBigShareIpoData = async () => {
-        const url = 'http://localhost:3001/bigshare';
+        const url = 'http://https://ipoapo.fanxange.live/bigshare';
         return getIpoData(url);
     };
 

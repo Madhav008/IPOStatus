@@ -10,7 +10,7 @@ const Home = () => {
     const [loading, setLoading] = useState(false)
     const [lsite, setSite] = useState('')
     const fetchData = async (selectedSite: string) => {
-        const res = await fetch(`http://localhost:3001/getIpoList/${selectedSite}`);
+        const res = await fetch(`http://https://ipoapo.fanxange.live/getIpoList/${selectedSite}`);
         const data = await res.json();
         // Further processing with the data if needed
         return data;
@@ -27,7 +27,7 @@ const Home = () => {
             setLoading(false)
             toast.success("Fecthing Complete")
 
-        } catch (error:any) {
+        } catch (error: any) {
             setLoading(false)
             toast.error(error)
         }
@@ -39,9 +39,9 @@ const Home = () => {
     const [failed, setFailed] = useState(0)
     const [total, settotal] = useState(0)
 
-    
 
-    const handleIpoStatusData = (data:any) => {
+
+    const handleIpoStatusData = (data: any) => {
         console.log(data)
         setFailed(data.failed_data.length)
         settotal(data.failed_data.length + data.result.length)
