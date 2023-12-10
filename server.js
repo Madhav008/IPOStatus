@@ -6,6 +6,9 @@ import FormData from 'form-data';
 import axios from 'axios';
 import fileUpload from 'express-fileupload';
 import xlsx from 'xlsx';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
+
 
 
 import { XMLParser } from "fast-xml-parser"
@@ -23,13 +26,56 @@ app.use((req, res, next) => {
   next();
 });
 
+// Use import.meta.url to get the current file's URL
+const currentFileUrl = import.meta.url;
+
+
+const publicDirectoryPath = path.join('uploads');
+app.use(express.static(publicDirectoryPath));
+
 // Set up proxy for 
 
-app.get('/getStatus', async (req, res) => {
 
-  const result = await IPOList()
-  res.send(result)
-})
+app.get('/download/:fileName', (req, res) => {
+  const fileName = req.params.fileName;
+  const filePath = path.join(publicDirectoryPath, fileName);
+
+  res.download(filePath, (err) => {
+    if (err) {
+      console.error('Error while sending file:', err);
+      res.status(500).send('Internal Server Error');
+    }
+  });
+});
+
+app.get('/getIpoList/:id', async (req, res) => {
+  const sitename = req.params.id; // Assuming you want to access the parameter from the route
+
+  if (sitename === 'Linkintime') {
+    const result = await getLinkinIpoList();
+    const val = JSON.parse(result);
+    if (val.d) {
+      const jObj = parser.parse(val.d);
+
+      res.status(200).json(jObj.NewDataSet.Table)
+    }
+  } else if (sitename === 'Bigshare') {
+    var result = await IPOList();
+    result = result.slice(1)
+    const resMap = result.map((e) => {
+      return { companyname: e.split("--")[0], company_id: e.split("--")[1] }
+    })
+    res.send(resMap);
+  } else if (sitename === 'Karvy') {
+    // Add your logic for the 'Karvy' case here
+    // For example: const result = await karvyIpoList();
+    // res.send(result);
+  } else {
+    // Handle the case when sitename doesn't match any of the specified values
+    res.status(404).send('Invalid sitename');
+  }
+});
+
 
 
 app.get('/karvy', async (req, res) => {
@@ -59,6 +105,13 @@ function findColumnIndex(sheet, columnName) {
 
 app.post('/bigshare', async (req, res) => {
   try {
+
+    const { clientId } = req.body;
+
+    if (!clientId) {
+      return res.status(400).json({ error: 'clientId is required in the request body' });
+    }
+
     // Check if a file was uploaded
     if (!req.files || Object.keys(req.files).length === 0) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -78,6 +131,7 @@ app.post('/bigshare', async (req, res) => {
     // Collect all PANs in the sheet
     const range = xlsx.utils.decode_range(sheet['!ref']);
     const panList = [];
+    const id = uuidv4()
     for (let rowNum = range.s.r + 1; rowNum <= range.e.r; rowNum++) {
       const cellAddress = { c: panColumnIndex, r: rowNum };
       const cellRef = xlsx.utils.encode_cell(cellAddress);
@@ -86,7 +140,7 @@ app.post('/bigshare', async (req, res) => {
         panList.push(pan);
       }
     }
-    const ipo = await bigshare(panList);
+    const ipo = await bigshare(panList, clientId);
     const failed_data = ipo.failedPans
     const data = ipo.ipoStatusList
     // Convert JSON data to worksheet
@@ -95,7 +149,7 @@ app.post('/bigshare', async (req, res) => {
     const wb = xlsx.utils.book_new();
     xlsx.utils.book_append_sheet(wb, ws, 'IpoStatus');
     // Write the workbook to a file
-    xlsx.writeFile(wb, 'IpoStatus.xlsx');
+    xlsx.writeFile(wb, `./uploads/IpoStatus_${id}.xlsx`);
     // Check if there are failed PANs before creating a workbook and writing to a file
     if (failed_data.length > 0) {
       // Convert failed IPO data to worksheet
@@ -104,9 +158,12 @@ app.post('/bigshare', async (req, res) => {
       const failedWb = xlsx.utils.book_new();
       xlsx.utils.book_append_sheet(failedWb, failedWs, 'FailedIpoList');
       // Write the workbook to a file for failed data
-      xlsx.writeFile(failedWb, 'FailedIpoList.xlsx');
+      xlsx.writeFile(failedWb, `./uploads/FailedIpoList_${id}.xlsx`);
+      res.status(200).json({ success: `/download/IpoStatus_${id}.xlsx`, failed: `/download/FailedIpoList_${id}.xlsx`, result: data, failed_data: failed_data });
+
+    } else {
+      res.status(200).json({ success: `/download/IpoStatus_${id}.xlsx`, result: data, failed_data: failed_data });
     }
-    res.json({ result: data, failed_data: failed_data });
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -115,20 +172,79 @@ app.post('/bigshare', async (req, res) => {
 
 
 
-app.get('/linkintime', async (req, res) => {
 
-  const clientId = '11717';
-  const pan = 'EBDPR5546G';
+app.post('/linkintime', async (req, res) => {
 
-  // const { clientId, pan } = req.body
-  const data = await getLinkinIpoList()
+  const { clientId } = req.body;
 
-  // const data = await executeCommand(clientId, pan)
-  const val = JSON.parse(data);
+  if (!clientId) {
+    return res.status(400).json({ error: 'clientId is required in the request body' });
+  }
 
-  console.log(val.d)
-  let jObj = parser.parse(val.d);
-  res.json({ "result": jObj })
+  // Check if a file was uploaded
+  if (!req.files || Object.keys(req.files).length === 0) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+  // Access the uploaded file
+  const uploadedFile = req.files.file; // Assuming the file input has the name 'file'
+  // Read the Excel file
+  const workbook = xlsx.read(uploadedFile.data, { type: 'buffer' });
+  // Assuming your data is in the first sheet (change as needed)
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  // Find the column index of the PAN column
+  const panColumnIndex = findColumnIndex(sheet, 'PAN NO');
+  if (panColumnIndex === -1) {
+    return res.status(400).json({ error: 'PAN NO column not found' });
+  }
+  // Collect all PANs in the sheet
+  const range = xlsx.utils.decode_range(sheet['!ref']);
+  const panList = [];
+  const failedPans = [];
+  const id = uuidv4()
+  for (let rowNum = range.s.r + 1; rowNum <= range.e.r; rowNum++) {
+    const cellAddress = { c: panColumnIndex, r: rowNum };
+    const cellRef = xlsx.utils.encode_cell(cellAddress);
+    const pan = sheet[cellRef] ? sheet[cellRef].v : null;
+    if (pan) {
+      try {
+        const data = await executeCommand(clientId, pan);
+        const val = JSON.parse(data);
+
+        if (val.d) {
+          const jObj = parser.parse(val.d);
+          panList.push(jObj.NewDataSet);
+        } else {
+          console.log("No able to parse this PAN: " + pan);
+          failedPans.push(pan);
+        }
+      } catch (error) {
+        console.log(error);
+        failedPans.push(pan);
+      }
+    }
+  }
+  // Create a new workbook and worksheet for successful PANs
+  const resultWorkbook = xlsx.utils.book_new();
+  const resultWorksheet = xlsx.utils.json_to_sheet(panList.flatMap(item => item.Table));
+  xlsx.utils.book_append_sheet(resultWorkbook, resultWorksheet, 'ResultSheet');
+  const resultFileName = `result_${id}.xlsx`;
+  xlsx.writeFile(resultWorkbook, `./uploads/${resultFileName}`);
+
+
+  // Create a new workbook and worksheet for failed PANs
+  if (failedPans.length > 0) {
+    const failedWorkbook = xlsx.utils.book_new();
+    const failedWorksheet = xlsx.utils.json_to_sheet(failedPans.map(pan => ({ PAN: pan, Status: 'Failed' })));
+    xlsx.utils.book_append_sheet(failedWorkbook, failedWorksheet, 'FailedPanList');
+    const failedFileName = `failed_pans_${id}.xlsx`;
+    xlsx.writeFile(failedWorkbook, `./uploads/${failedFileName}`);
+
+    res.status(200).json({ success: `/download/${resultFilePath}`, failed: `/download/${failedFileName}`, result: panList, failed_data: failedPans, });
+
+  } else {
+    res.status(200).json({ success: resultFilePath, result: panList, failed_data: failedPans, });
+  }
 })
 
 
@@ -229,8 +345,8 @@ const sleep = (milliseconds) => {
 };
 
 
-const bigshare = async (panList) => {
-  const ipoList = await IPOList();
+const bigshare = async (panList, company_id) => {
+  // const ipoList = await IPOList();
 
   const browser = await puppeteer.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -247,7 +363,7 @@ const bigshare = async (panList) => {
 
     const retryBigshare = async (PAN) => {
       try {
-        await page.select('#ddlCompany', ipoList[1].split("--")[1]);
+        await page.select('#ddlCompany', company_id);
         await page.waitForSelector('#txtpan');
         await page.select('#ddlSelectionType', 'PN');
         await page.type('#txtpan', `${PAN}`);
@@ -394,6 +510,9 @@ const karvyCaptcha = async () => {
   // await browser.close();
 
 }
+
+
+
 
 
 
