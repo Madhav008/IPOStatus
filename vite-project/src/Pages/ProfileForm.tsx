@@ -4,146 +4,124 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+interface IpoList {
+    company_id: string;
+    companyname: string;
+}
 
+interface ProfileFormProps {
+    loading: boolean;
+    ipoList: IpoList[];
+    selectedSite: string;
+    handleIpoStatusData: (data: any) => void;
+}
 
-const ProfileForm = ({ loading, ipoList, selectedSite, handleIpoStatusData }) => {
+const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSite, handleIpoStatusData }) => {
 
-
-
-    const [iponame, setIponame] = useState('')
-
-    const [file, setFile] = useState(null)
-    const [lloading, setLoading] = useState(false)
-    const [data, setData] = useState(null)
+    const [iponame, setIponame] = useState('');
+    const [file, setFile] = useState<File | null>(null);
+    const [lloading, setLoading] = useState(false);
+    const [data, setData] = useState<any | null>(null);
 
     const handleDownload = async () => {
-        const { success } = data
         try {
-            // Create the download URL
-            const downloadUrl = `http://localhost:3001${success}`;
+            const { success } = data || {};
+            if (success) {
+                // Create the download URL
+                const downloadUrl = `http://localhost:3001${success}`;
 
-            // Open the download URL in a new tab
-            const newTab = window.open(downloadUrl, '_blank');
+                // Open the download URL in a new tab
+                const newTab = window.open(downloadUrl, '_blank');
 
-
-            // Check if the new tab was successfully opened
-            if (!newTab) {
-                console.error('Failed to open new tab for download.');
-                // Handle the error appropriately (e.g., display an error message to the user)
-                return;
+                // Check if the new tab was successfully opened
+                if (!newTab) {
+                    console.error('Failed to open new tab for download.');
+                    // Handle the error appropriately (e.g., display an error message to the user)
+                    return;
+                }
             }
         } catch (error) {
             console.error('Error during download:', error);
             // Handle the error appropriately (e.g., display an error message to the user)
         }
-    }
-
+    };
     const handleFailed = async () => {
-        const { failed } = data
         try {
-            // Create the download URL
-            const downloadUrl = `http://localhost:3001${failed}`;
+            const { failed } = data || {};
+            if (failed) {
+                // Create the download URL
+                const downloadUrl = `http://localhost:3001${failed}`;
 
-            // Open the download URL in a new tab
-            const newTab = window.open(downloadUrl, '_blank');
+                // Open the download URL in a new tab
+                const newTab = window.open(downloadUrl, '_blank');
 
-
-            // Check if the new tab was successfully opened
-            if (!newTab) {
-                console.error('Failed to open new tab for download.');
-                // Handle the error appropriately (e.g., display an error message to the user)
-                return;
+                // Check if the new tab was successfully opened
+                if (!newTab) {
+                    console.error('Failed to open new tab for download.');
+                    // Handle the error appropriately (e.g., display an error message to the user)
+                    return;
+                }
             }
         } catch (error) {
             console.error('Error during download:', error);
             // Handle the error appropriately (e.g., display an error message to the user)
         }
-    }
+    };
+
+    const getIpoData = async (url: string) => {
+        if (!file) {
+            toast.error('Please Upload the file');
+            return null;
+        }
+        if (!iponame) {
+            toast.error('Please Select the IPO name');
+            return null;
+        }
+        setLoading(true);
+        try {
+            const formdata = new FormData();
+            formdata.append('file', file);
+            formdata.append('clientId', iponame);
+
+            const requestOptions: RequestInit = {
+                method: 'POST',
+                body: formdata,
+                redirect: 'follow',
+            };
+
+            const response = await fetch(url, requestOptions);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            setLoading(false);
+            return result;
+        } catch (error) {
+            console.error('Error:', error);
+            return null;
+        }
+    };
 
     const getLinkinIpoData = async () => {
-
-        if (!file) {
-            toast("Please Upload the file")
-            return null
-        }
-        if (!iponame) {
-            toast("Please Select the ipo name")
-            return null
-        }
-        setLoading(true)
-        try {
-            var formdata = new FormData();
-            formdata.append("file", file);
-            formdata.append("clientId", iponame);
-
-            var requestOptions = {
-                method: 'POST',
-                body: formdata,
-                redirect: 'follow'
-            };
-
-            const response = await fetch("http://localhost:3001/linkintime", requestOptions);
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-                setLoading(false)
-            }
-
-            const data = await response.json();
-            setLoading(false)
-            // Further processing with the data if needed
-            return data;
-        } catch (error) {
-            console.error('Error:', error);
-            return null
-            // Handle the error as needed, you might want to show an error message
-        }
+        const url = 'http://localhost:3001/linkintime';
+        return getIpoData(url);
     };
+
     const getBigShareIpoData = async () => {
-
-        if (!file) {
-            toast("Please Upload the file")
-            return null
-        }
-        if (!iponame) {
-            toast("Please Select the ipo name")
-            return null
-        }
-        setLoading(true)
-        try {
-            var formdata = new FormData();
-            formdata.append("file", file);
-            formdata.append("clientId", iponame);
-
-            var requestOptions = {
-                method: 'POST',
-                body: formdata,
-                redirect: 'follow'
-            };
-
-            const response = await fetch("http://localhost:3001/bigshare", requestOptions);
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-                setLoading(false)
-            }
-
-            const data = await response.json();
-            setLoading(false)
-            // Further processing with the data if needed
-            return data;
-        } catch (error) {
-            console.error('Error:', error);
-            return null
-            // Handle the error as needed, you might want to show an error message
-        }
+        const url = 'http://localhost:3001/bigshare';
+        return getIpoData(url);
     };
 
 
-    async function handleFile(event: any) {
-        setFile(event.target.files[0])
-        toast.success('Successfully Uploaded!')
-    }
+    const handleFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files && event.target.files.length > 0) {
+            setFile(event.target.files[0]);
+            toast.success('Successfully Uploaded!');
+        }
+    };
+
     async function handleSubmit(event: any) {
         setData(null)
         const loadingToastId = toast.loading('Getting the Data please wait ...')
@@ -153,6 +131,7 @@ const ProfileForm = ({ loading, ipoList, selectedSite, handleIpoStatusData }) =>
             if (selectedSite === 'Linkintime') {
                 try {
                     const ldata = await getLinkinIpoData();
+
                     setData(ldata)
                     handleIpoStatusData(ldata)
                     toast.dismiss(loadingToastId);
@@ -221,8 +200,10 @@ const ProfileForm = ({ loading, ipoList, selectedSite, handleIpoStatusData }) =>
                     </Label>
                     <Button onClick={handleDownload} className="bg-white w-max m-6">Download Excel</Button>
                     {data.failed !== null && (
-                        <Button onClick={handleFailed} className="bg-white w-max m-6">Download Failed PAN's</Button>)
-                    }
+                        <Button onClick={handleFailed} className="bg-white w-max m-6">
+                            Download Failed PAN's
+                        </Button>
+                    )}
                 </>
             )}
 

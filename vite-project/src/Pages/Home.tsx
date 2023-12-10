@@ -27,7 +27,7 @@ const Home = () => {
             setLoading(false)
             toast.success("Fecthing Complete")
 
-        } catch (error) {
+        } catch (error:any) {
             setLoading(false)
             toast.error(error)
         }
@@ -38,13 +38,12 @@ const Home = () => {
 
     const [failed, setFailed] = useState(0)
     const [total, settotal] = useState(0)
-    const [success, setSuccess] = useState(0)
 
+    
 
-    const handleIpoStatusData = (data) => {
+    const handleIpoStatusData = (data:any) => {
         console.log(data)
         setFailed(data.failed_data.length)
-        setSuccess(data.result.length)
         settotal(data.failed_data.length + data.result.length)
     }
 
