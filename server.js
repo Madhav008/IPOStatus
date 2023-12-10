@@ -240,10 +240,10 @@ app.post('/linkintime', async (req, res) => {
     const failedFileName = `failed_pans_${id}.xlsx`;
     xlsx.writeFile(failedWorkbook, `./uploads/${failedFileName}`);
 
-    res.status(200).json({ success: `/download/${resultFilePath}`, failed: `/download/${failedFileName}`, result: panList, failed_data: failedPans, });
+    res.status(200).json({ success: `/download/${resultFileName}`, failed: `/download/${failedFileName}`, result: panList, failed_data: failedPans, });
 
   } else {
-    res.status(200).json({ success: resultFilePath, result: panList, failed_data: failedPans, });
+    res.status(200).json({ success: `/download/${resultFileName}`, result: panList, failed_data: failedPans, });
   }
 })
 
@@ -432,7 +432,7 @@ const bigshare = async (panList, company_id) => {
               PAN: PAN,
               ...data
             }
-            console.log(`Data for PAN ${PAN}:`, JSON.stringify(finaldata, null, 2));
+            // console.log(`Data for PAN ${PAN}:`, JSON.stringify(finaldata, null, 2));
             ipoStatusList.push(finaldata);
             success = true;
           } else {
