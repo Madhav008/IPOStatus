@@ -1,4 +1,4 @@
-curl 'https://linkintime.co.in/mipo/IPO.aspx/GetDetails' \
+curl --insecure 'https://linkintime.co.in/mipo/IPO.aspx/GetDetails' \
 -X 'POST' \
 -H 'authority: linkintime.co.in' \
 -H 'accept: application/json, text/javascript, */*; q=0.01' \

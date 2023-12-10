@@ -17,6 +17,7 @@
         [] Get the Capthcha
         [] Get the data
         [] return the excel
+    [] need to add the tesearact.js
     [] Add the Purva
     [] Add the Skyline
 
@@ -24,4 +25,4 @@
 #   Bugs
     [] Check the Files Parllelly
     [] Add the failsafe for the More site comming soon
-    [] Add the Specific id to result.xlsx so that user can only download his execl
+    [*] Add the Specific id to result.xlsx so that user can only download his execl

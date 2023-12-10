@@ -15,7 +15,7 @@ fi
 # keyWord='PAN'
 
 # Execute curl command
-curl 'https://linkintime.co.in/mipo/IPO.aspx/SearchOnPan' \
+curl --insecure 'https://linkintime.co.in/mipo/IPO.aspx/SearchOnPan' \
 -H 'authority: linkintime.co.in' \
 -H 'accept: application/json, text/javascript, */*; q=0.01' \
 -H 'accept-language: en-US,en;q=0.9' \
