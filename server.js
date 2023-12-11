@@ -78,6 +78,7 @@ app.get('/getIpoList/:id', async (req, res) => {
 
 
 
+
 app.get('/karvy', async (req, res) => {
   await karvyCaptcha()
   const data = await uploadImageAndReceiveResponse('screenshot.png')
@@ -87,21 +88,43 @@ app.get('/karvy', async (req, res) => {
 
   res.json({ "result": numbersOnly })
 })
-// Other routes and middleware can be added as needed
+
+
+
+
+function isColumnMatch(cellValue, columnNameUpperCase, colNum) {
+  const cellValueUpperCase = cellValue?.trim().toUpperCase();
+
+  return (
+    cellValueUpperCase === columnNameUpperCase ||
+    cellValueUpperCase?.startsWith('PAN') ||
+    colNum.toString().trim().toUpperCase() === 'PAN' ||
+    cellValue?.trim().toLowerCase() === columnNameUpperCase.toLowerCase() ||
+    cellValue?.toLowerCase().startsWith('pan')
+  );
+}
+
+
 function findColumnIndex(sheet, columnName) {
   const range = xlsx.utils.decode_range(sheet['!ref']);
+  const columnNameUpperCase = columnName.trim().toUpperCase();
+
   for (let colNum = range.s.c; colNum <= range.e.c; colNum++) {
     const cellAddress = { c: colNum, r: range.s.r };
     const cellRef = xlsx.utils.encode_cell(cellAddress);
-    const cellValue = sheet[cellRef] ? sheet[cellRef].v : null;
+    const cellValue = sheet[cellRef]?.v;
 
-    if (cellValue && cellValue.trim().toUpperCase() === columnName.trim().toUpperCase()) {
+    if (isColumnMatch(cellValue, columnNameUpperCase, colNum)) {
       return colNum;
     }
   }
 
   return -1;
 }
+
+
+
+
 
 app.post('/bigshare', async (req, res) => {
   try {
@@ -124,7 +147,7 @@ app.post('/bigshare', async (req, res) => {
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
     // Find the column index of the PAN column
-    const panColumnIndex = findColumnIndex(sheet, 'PAN NO');
+    const panColumnIndex = findColumnIndex(sheet, 'PAN');
     if (panColumnIndex === -1) {
       return res.status(400).json({ error: 'PAN NO column not found' });
     }
