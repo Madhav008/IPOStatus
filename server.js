@@ -81,22 +81,29 @@ app.get('/getIpoList/:id', async (req, res) => {
 
 
 app.get('/karvy', async (req, res) => {
-  await karvyCaptcha()
-  var numbersOnly;
-  (async (res) => {
+  try {
+    // Assuming karvyCaptcha returns a promise
+    await karvyCaptcha();
+
+    // Create the worker outside the inner function
     const worker = await createWorker('eng');
+
     const ret = await worker.recognize('screenshot.png');
     console.log(ret.data.text);
-    numbersOnly = ret.data.text
-    numbersOnly = numbersOnly.match(/\d+/g).join('');
 
+    // Extract digits from the recognized text
+    const numbersOnly = ret.data.text.match(/\d+/g);
 
+    // Check if numbersOnly is not null or undefined before applying join
+    const result = numbersOnly ? numbersOnly.join('') : '';
     await worker.terminate();
 
-    res.json({ "result": numbersOnly })
-  })();
-
-})
+    res.json({ result: result });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
 
@@ -225,7 +232,7 @@ app.post('/linkintime', async (req, res) => {
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
   // Find the column index of the PAN column
-  const panColumnIndex = findColumnIndex(sheet, 'PAN NO');
+  const panColumnIndex = findColumnIndex(sheet, 'PAN');
   if (panColumnIndex === -1) {
     return res.status(400).json({ error: 'PAN NO column not found' });
   }
@@ -257,8 +264,6 @@ app.post('/linkintime', async (req, res) => {
     }
   }
   // Create a new workbook and worksheet for successful PANs
-
-  console.log(panList)
   const resultWorkbook = xlsx.utils.book_new();
   const resultWorksheet = xlsx.utils.json_to_sheet(panList.flatMap(item => (item.Table ? item.Table : [])));
   xlsx.utils.book_append_sheet(resultWorkbook, resultWorksheet, 'ResultSheet');
@@ -349,7 +354,8 @@ const uploadImageAndReceiveResponse = async () => {
 
 const IPOList = async () => {
   const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    headless:"new"
   });
   const page = await browser.newPage();
 
@@ -383,8 +389,8 @@ const bigshare = async (panList, company_id) => {
   // const ipoList = await IPOList();
 
   const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-    // headless: false
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    headless: "new"
   });
   const page = await browser.newPage();
 
