@@ -8,6 +8,7 @@ import fileUpload from 'express-fileupload';
 import xlsx from 'xlsx';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { createWorker } from 'tesseract.js';
 
 
 
@@ -81,12 +82,20 @@ app.get('/getIpoList/:id', async (req, res) => {
 
 app.get('/karvy', async (req, res) => {
   await karvyCaptcha()
-  const data = await uploadImageAndReceiveResponse('screenshot.png')
-  const numbersOnly = data.result.replace(/[^\d]/g, '');
+  var numbersOnly;
+  (async (res) => {
+    const worker = await createWorker('eng');
+    const ret = await worker.recognize('screenshot.png');
+    console.log(ret.data.text);
+    numbersOnly = ret.data.text
+    numbersOnly = numbersOnly.match(/\d+/g).join('');
 
-  console.log('Numbers only:', data);
 
-  res.json({ "result": numbersOnly })
+    await worker.terminate();
+
+    res.json({ "result": numbersOnly })
+  })();
+
 })
 
 
@@ -248,8 +257,10 @@ app.post('/linkintime', async (req, res) => {
     }
   }
   // Create a new workbook and worksheet for successful PANs
+
+  console.log(panList)
   const resultWorkbook = xlsx.utils.book_new();
-  const resultWorksheet = xlsx.utils.json_to_sheet(panList.flatMap(item => item.Table));
+  const resultWorksheet = xlsx.utils.json_to_sheet(panList.flatMap(item => (item.Table ? item.Table : [])));
   xlsx.utils.book_append_sheet(resultWorkbook, resultWorksheet, 'ResultSheet');
   const resultFileName = `result_${id}.xlsx`;
   xlsx.writeFile(resultWorkbook, `./uploads/${resultFileName}`);
@@ -496,8 +507,8 @@ const bigshare = async (panList, company_id) => {
 
 const karvyCaptcha = async () => {
   const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-    // headless: false
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    headless: "new"
   });
   const page = await browser.newPage();
 
