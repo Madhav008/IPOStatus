@@ -240,7 +240,7 @@ app.post('/linkintime', async (req, res) => {
     const pan = sheet[cellRef] ? sheet[cellRef].v : null;
     if (pan) {
       try {
-        const data = await executeCommand(clientId, pan);
+        const data = await executeCommand(clientId, pan.replace(/\s/g, ''));
         const val = JSON.parse(data);
 
         if (val.d) {
