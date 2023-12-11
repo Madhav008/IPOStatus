@@ -1,18 +1,17 @@
-import { exec } from 'child_process';
+
 import express from 'express';
-import puppeteer from 'puppeteer';
-import fs from 'fs';
-import FormData from 'form-data';
-import axios from 'axios';
 import fileUpload from 'express-fileupload';
 import xlsx from 'xlsx';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { createWorker } from 'tesseract.js';
-
-
-
 import { XMLParser } from "fast-xml-parser"
+import { getLinkinIpoList, executeCommand } from './sites/linkintime.js';
+import { IPOList, bigshare, } from './sites/bigshare.js';
+import karvyCaptcha from './sites/karvy.js';
+import { connectDB } from './utils/initDB.js';
+import { company } from './Models/IpoList.js';
+connectDB()
 const parser = new XMLParser();
 
 const app = express();
@@ -27,8 +26,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Use import.meta.url to get the current file's URL
-const currentFileUrl = import.meta.url;
 
 
 const publicDirectoryPath = path.join('uploads');
@@ -53,20 +50,47 @@ app.get('/getIpoList/:id', async (req, res) => {
   const sitename = req.params.id; // Assuming you want to access the parameter from the route
 
   if (sitename === 'Linkintime') {
-    const result = await getLinkinIpoList();
-    const val = JSON.parse(result);
-    if (val.d) {
-      const jObj = parser.parse(val.d);
 
-      res.status(200).json(jObj.NewDataSet.Table)
+
+    try {
+      // Check if the company with the given clientId exists in the database
+      const existingCompany = await company.findOne({ site_name: 'Linkintime' });
+      if (!existingCompany) {
+        const result = await getLinkinIpoList();
+        const val = JSON.parse(result);
+        if (val.d) {
+          const jObj = parser.parse(val.d);
+          const newCompany = new company({
+            company_list: jObj.NewDataSet.Table,
+            site_name: "Linkintime",
+          });
+          await newCompany.save();
+          res.status(200).json(jObj.NewDataSet.Table)
+        }
+      } else {
+        res.status(200).json(existingCompany.company_list)
+      }
+    } catch (error) {
+
+      console.error('Error:', error);
     }
   } else if (sitename === 'Bigshare') {
-    var result = await IPOList();
-    result = result.slice(1)
-    const resMap = result.map((e) => {
-      return { companyname: e.split("--")[0], company_id: e.split("--")[1] }
-    })
-    res.send(resMap);
+    const existingCompany = await company.findOne({ site_name: 'Bigshare' });
+    if (!existingCompany) {
+      var result = await IPOList();
+      result = result.slice(1)
+      const resMap = result.map((e) => {
+        return { companyname: e.split("--")[0], company_id: e.split("--")[1] }
+      })
+      const newCompany = new company({
+        company_list: resMap,
+        site_name: "Bigshare",
+      });
+      await newCompany.save();
+      res.status(200).send(resMap);
+    } else {
+      res.status(200).json(existingCompany.company_list)
+    }
   } else if (sitename === 'Karvy') {
     // Add your logic for the 'Karvy' case here
     // For example: const result = await karvyIpoList();
@@ -294,262 +318,14 @@ app.listen(port, () => {
 
 
 
-const getLinkinIpoList = async (clientId, pan) => {
-  return new Promise((resolve, reject) => {
-    exec(`bash getIpoLiist.sh`, (error, stdout, stderr) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(stdout);
-      }
-    });
-  });
-};
-
-
-
-const executeCommand = async (clientId, pan) => {
-  const keyWord = 'PAN';
-  return new Promise((resolve, reject) => {
-    exec(`bash linkintime.sh ${clientId} ${pan} ${keyWord}`, (error, stdout, stderr) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(stdout);
-      }
-    });
-  });
-};
 
 
 
 
 
 
-const uploadImageAndReceiveResponse = async () => {
-  const apiUrl = 'http://localhost:5000/upload';  // Replace with the actual API endpoint
-  const path = 'screenshot.png';
-
-  const formData = new FormData();
-
-  formData.append('file', fs.createReadStream(path), { filename: path });
-
-  try {
-    const response = await axios.post(apiUrl, formData, {
-      headers: {
-        ...formData.getHeaders(),
-      },
-    });
-
-    return response.data;
-  } catch (error) {
-    console.error('Error:', error.message);
-    throw error; // Rethrow the error to propagate it
-  }
-};
 
 
-//TODO pending work of purva
-
-
-const IPOList = async () => {
-  const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    headless:"new"
-  });
-  const page = await browser.newPage();
-
-  try {
-    // Navigate to the website
-    await page.goto('https://ipo.bigshareonline.com/IPO_Status.html');
-    // Wait for the page to load
-    await page.waitForSelector('#ddlCompany');
-    // Extract uncommented options from the select element
-    const options = await page.evaluate(() => {
-      const selectElement = document.querySelector('#ddlCompany');
-      const optionElements = selectElement.querySelectorAll('option:not(:disabled)'); // Select only uncommented options
-      const optionValues = Array.from(optionElements).map(option => option.textContent.trim() + "--" + option.value);
-      return optionValues;
-    });
-
-    return options;
-  } catch (error) {
-    console.error('Error:', error);
-  } finally {
-    await browser.close();
-  }
-};
-
-const sleep = (milliseconds) => {
-  return new Promise(resolve => setTimeout(resolve, milliseconds));
-};
-
-
-const bigshare = async (panList, company_id) => {
-  // const ipoList = await IPOList();
-
-  const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    headless: "new"
-  });
-  const page = await browser.newPage();
-
-  try {
-    await page.goto('https://ipo.bigshareonline.com/IPO_Status.html');
-    await page.waitForSelector('#ddlCompany');
-
-    const ipoStatusList = [];
-    const failedPans = [];
-
-    const retryBigshare = async (PAN) => {
-      try {
-        await page.select('#ddlCompany', company_id);
-        await page.waitForSelector('#txtpan');
-        await page.select('#ddlSelectionType', 'PN');
-        await page.type('#txtpan', `${PAN}`);
-        const sessionData = await page.evaluate(() => sessionStorage.getItem('captchaCode'));
-        const captchadata = JSON.parse(sessionData);
-
-        // Check if captchadata is present
-        if (captchadata) {
-          await sleep(100);
-          await page.type('#captcha-input', captchadata + '');
-          await page.click('#btnSearch');
-          await page.waitForSelector('#dPrint');
-          await sleep(200);
-
-          const data = await page.evaluate(() => {
-            const tableRows = document.querySelectorAll('#dPrint table tbody tr');
-            const rowData = {};
-
-            tableRows.forEach((row) => {
-              const th = row.querySelector('th');
-              const td = row.querySelector('td');
-
-              if (th && td) {
-                const key = th.textContent.trim();
-                const value = td.textContent.trim();
-                rowData[key] = value;
-              }
-            });
-
-            return rowData;
-          });
-
-          await page.click('#btnclear');
-          await page.reload();
-          await sleep(100);
-
-          // Remove PAN from failedPans after successful retry
-          const index = failedPans.indexOf(PAN);
-          if (index !== -1) {
-            failedPans.splice(index, 1);
-          }
-
-          return data;
-        } else {
-          console.error(`Captcha data not available for PAN ${PAN}. Adding to failedPans.`);
-          failedPans.push(PAN);
-          return null;
-        }
-      } catch (error) {
-        console.error(`Failed to retrieve data for PAN ${PAN} even after retry.`);
-        return null;
-      }
-    };
-
-    for (const PAN of panList) {
-      let success = false;
-      let retries = 3;
-
-      while (!success && retries > 0) {
-        try {
-          const data = await retryBigshare(PAN);
-
-          if (data) {
-
-            var finaldata = {
-              PAN: PAN,
-              ...data
-            }
-            // console.log(`Data for PAN ${PAN}:`, JSON.stringify(finaldata, null, 2));
-            ipoStatusList.push(finaldata);
-            success = true;
-          } else {
-            console.error(`Failed attempt for PAN ${PAN}. Retrying...`);
-            retries--;
-            await sleep(1000);
-            await page.reload()
-          }
-        } catch (error) {
-          console.error(`Error processing PAN ${PAN}:`, error);
-        }
-      }
-
-      if (!success) {
-        console.error(`Failed to retrieve data for PAN ${PAN} after retries.`);
-        failedPans.push(PAN);
-      }
-    }
-
-    // Retry failed PANs
-    for (const failedPAN of failedPans) {
-      const data = await retryBigshare(failedPAN);
-      if (data) {
-        console.log(`Data for PAN ${failedPAN} (after retry):`, JSON.stringify(data, null, 2));
-        ipoStatusList.push(data);
-      }
-    }
-
-    return { ipoStatusList, failedPans };
-  } catch (error) {
-    console.error('Error:', error);
-  } finally {
-    await browser.close();
-  }
-};
-
-
-
-const karvyCaptcha = async () => {
-  const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    headless: "new"
-  });
-  const page = await browser.newPage();
-
-  // Navigate to the webpage
-  await page.goto('https://rti.kfintech.com/ipostatus/');
-
-  // Use a specific CSS selector to identify the div
-  const divSelector = 'img#captchaimg';
-  // const divSelector = 'div.captcha'
-  // Wait for the div to be rendered
-  await page.waitForSelector(divSelector);
-
-  // Get the bounding box of the div
-  const divBoundingBox = await page.$eval(divSelector, div => {
-    const { x, y, width, height } = div.getBoundingClientRect();
-    return { x, y, width, height };
-  });
-
-  // Capture screenshot of the div
-  await page.screenshot({
-    path: 'screenshot.png',
-    clip: {
-      x: divBoundingBox.x,
-      y: divBoundingBox.y,
-      width: divBoundingBox.width,
-      height: divBoundingBox.height,
-    },
-  });
-
-  console.log('Screenshot captured successfully!');
-
-  // Close the browser
-  // await browser.close();
-
-}
 
 
 

@@ -99,6 +99,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
             setLoading(false);
             return result;
         } catch (error) {
+            setLoading(false);
             console.error('Error:', error);
             return null;
         }
@@ -137,6 +138,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
                     toast.dismiss(loadingToastId);
                     toast.success("Data Fetched Successfully")
                 } catch (error) {
+                    toast.dismiss(loadingToastId);
                     console.error('Error while fetching data:', error);
                     toast.error('Error while fetching data. Please try again.');
                 }
@@ -148,6 +150,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
                     toast.dismiss(loadingToastId);
                     toast.success("Data Fetched Successfully")
                 } catch (error) {
+                    toast.dismiss(loadingToastId);
                     console.error('Error while fetching data:', error);
                     toast.error('Error while fetching data. Please try again.');
                 }
