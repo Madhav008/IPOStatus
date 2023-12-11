@@ -1,7 +1,6 @@
 import { IPOList, bigshare, } from '../sites/bigshare.js';
 import { getLinkinIpoList, executeCommand } from '../sites/linkintime.js';
-import karvyCaptcha from '../sites/karvy.js';
-import { createWorker } from 'tesseract.js';
+import {  getKarvyIpoList } from '../sites/karvy.js';
 import { v4 as uuidv4 } from 'uuid';
 import xlsx from 'xlsx';
 import { XMLParser } from "fast-xml-parser"
@@ -69,9 +68,27 @@ const getIpoList = asyncHandler(async (req, res) => {
             res.status(200).json(existingCompany.company_list)
         }
     } else if (sitename === 'Karvy') {
-        // Add your logic for the 'Karvy' case here
-        // For example: const result = await karvyIpoList();
-        // res.send(result);
+        try {
+            const existingCompany = await company.findOne({ site_name: 'Karvy' });
+            if (!existingCompany) {
+                var result = await getKarvyIpoList();
+                result = result.slice(1)
+                const resMap = result.map((e) => {
+                    return { companyname: e.split("--")[0], company_id: e.split("--")[1] }
+                })
+                const newCompany = new company({
+                    company_list: resMap,
+                    site_name: "Karvy",
+                });
+                await newCompany.save();
+                res.status(200).send(resMap);
+            } else {
+                res.status(200).json(existingCompany.company_list)
+            }
+        } catch (error) {
+
+            console.error('Error:', error);
+        }
     } else {
         // Handle the case when sitename doesn't match any of the specified values
         res.status(404).send('Invalid sitename');
@@ -85,20 +102,6 @@ const getKarvyData = asyncHandler(async (req, res) => {
         // Assuming karvyCaptcha returns a promise
         await karvyCaptcha();
 
-        // Create the worker outside the inner function
-        const worker = await createWorker('eng');
-
-        const ret = await worker.recognize('screenshot.png');
-        console.log(ret.data.text);
-
-        // Extract digits from the recognized text
-        const numbersOnly = ret.data.text.match(/\d+/g);
-
-        // Check if numbersOnly is not null or undefined before applying join
-        const result = numbersOnly ? numbersOnly.join('') : '';
-        await worker.terminate();
-
-        res.json({ result: result });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ error: 'Internal Server Error' });

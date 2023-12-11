@@ -8,7 +8,6 @@ import { createWorker } from 'tesseract.js';
 import { XMLParser } from "fast-xml-parser"
 import { getLinkinIpoList, executeCommand } from './sites/linkintime.js';
 import { IPOList, bigshare, } from './sites/bigshare.js';
-import karvyCaptcha from './sites/karvy.js';
 import { connectDB } from './utils/initDB.js';
 import { company } from './Models/IpoList.js';
 import { User } from './Models/userModel.js';
