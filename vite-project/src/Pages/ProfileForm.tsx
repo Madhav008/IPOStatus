@@ -2,9 +2,9 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { ipoStatusApi } from '@/services/ipostatusApi';
+import React, { useRef, useState } from 'react';
 
 interface IpoList {
     company_id: string;
@@ -20,7 +20,7 @@ interface ProfileFormProps {
 
 const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSite, handleIpoStatusData }) => {
     const baseURL = import.meta.env.VITE_APP_BACKEND_URL;
-    const fileInputRef = useRef(null);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const [iponame, setIponame] = useState('');
     const [file, setFile] = useState<File | null>(null);
@@ -174,8 +174,9 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
             }
             setIponame('')
             setFile(null)
-            fileInputRef.current.value = '';
-
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
         }
     }
 
