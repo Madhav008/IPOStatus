@@ -126,7 +126,6 @@ const getKarvyData = asyncHandler(async (req, res) => {
         }
         // Collect all PANs in the sheet
         const range = xlsx.utils.decode_range(sheet['!ref']);
-        var panList = [];
 
         var failed_panlist = []
         var panData = [];
@@ -136,9 +135,8 @@ const getKarvyData = asyncHandler(async (req, res) => {
             const cellRef = xlsx.utils.encode_cell(cellAddress);
             const pan = sheet[cellRef] ? sheet[cellRef].v : null;
             if (pan) {
-                panList.push(pan);
                 try {
-                    const ipo = await karvyCaptcha(pan, clientId);
+                    const ipo = await karvyCaptcha(pan.toUpperCase(), clientId);
                     panData.push(ipo)
                 } catch (error) {
                     // Handle errors by logging and adding to failed_panlist
@@ -210,7 +208,7 @@ const getbigshareData = asyncHandler(async (req, res) => {
             const cellRef = xlsx.utils.encode_cell(cellAddress);
             const pan = sheet[cellRef] ? sheet[cellRef].v : null;
             if (pan) {
-                panList.push(pan);
+                panList.push(pan.toUpperCase());
             }
         }
         const ipo = await bigshare(panList, clientId);

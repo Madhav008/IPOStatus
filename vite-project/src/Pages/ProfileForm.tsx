@@ -2,7 +2,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { ipoStatusApi } from '@/services/ipostatusApi';
 
@@ -20,6 +20,7 @@ interface ProfileFormProps {
 
 const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSite, handleIpoStatusData }) => {
     const baseURL = import.meta.env.VITE_APP_BACKEND_URL;
+    const fileInputRef = useRef(null);
 
     const [iponame, setIponame] = useState('');
     const [file, setFile] = useState<File | null>(null);
@@ -171,6 +172,10 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
                 toast.dismiss(loadingToastId);
                 toast.error("More sites coming soon");
             }
+            setIponame('')
+            setFile(null)
+            fileInputRef.current.value = '';
+
         }
     }
 
@@ -183,7 +188,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
             <div className="space-y-8">
                 <div className='mt-0 '>
                     <Label className=' FormLabel  mx-1  text-md '>Choose the IPO</Label>
-                    <Select name='iponame' onValueChange={(val) => { setIponame(val); }}>
+                    <Select value={iponame} name='iponame' onValueChange={(val) => { setIponame(val); }}>
                         <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select a name " />
                         </SelectTrigger>
@@ -202,7 +207,8 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
 
                 <div>
                     <Label className='mx-1 my-6 text-md '>Upload the File Here</Label>
-                    <input hidden name='file' id="picture" type="file" className=' flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm  ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-white placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50' onChange={handleFile} />
+                    <input ref={fileInputRef}
+                        hidden name='file' id="picture" type="file" className=' flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm  ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-white placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50' onChange={handleFile} />
 
                 </div>
                 <Button onClick={handleSubmit} className={`bg-secondary w-full text-primary-content ${lloading ? 'opacity-50 cursor-not-allowed' : ''} `} disabled={lloading}>
