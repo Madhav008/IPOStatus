@@ -13,6 +13,7 @@ import { company } from './Models/IpoList.js';
 import { User } from './Models/userModel.js';
 import bcrypt from 'bcryptjs'
 import userRoutes from './routes/userRoutes.js'
+import cors from "cors"
 
 connectDB()
 const parser = new XMLParser();
@@ -20,6 +21,7 @@ const parser = new XMLParser();
 const app = express();
 const port = process.env.PORT || 3001;
 app.use(fileUpload());
+app.use(cors());
 
 // Enable CORS for all routes (modify as needed)
 app.use((req, res, next) => {

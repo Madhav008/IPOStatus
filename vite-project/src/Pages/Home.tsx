@@ -4,26 +4,23 @@ import ProfileForm from './ProfileForm'
 import { Separator } from '@/components/ui/separator'
 import { useState } from 'react'
 import toast from 'react-hot-toast'
+import { ipoStatusApi } from '@/services/ipostatusApi'
+import { Label } from '@/components/ui/label'
 
 const Home = () => {
+
     const [ipoList, setIpoList] = useState([])
     const [loading, setLoading] = useState(false)
     const [lsite, setSite] = useState('')
-    const fetchData = async (selectedSite: string) => {
-        const res = await fetch(`https://ipoapi.fanxange.live/getIpoList/${selectedSite}`);
-        const data = await res.json();
-        // Further processing with the data if needed
-        return data;
-    };
 
     const handleForm = async (site: any) => {
 
         try {
+
             setSite(site)
             setLoading(true)
-            var data = await fetchData(site)
-            setIpoList(data)
-            console.log(data)
+            var res = await ipoStatusApi.getIpoList(site)
+            setIpoList(res.data)
             setLoading(false)
             toast.success("Fecthing Complete")
 
@@ -42,7 +39,6 @@ const Home = () => {
 
 
     const handleIpoStatusData = (data: any) => {
-        console.log(data)
         setFailed(data.failed_data.length)
         settotal(data.failed_data.length + data.result.length)
     }
@@ -59,21 +55,23 @@ const Home = () => {
                     </p>
                 </div>
                 <Separator />
+                <div>
+                    <Label className='text-md mb-2'>Choose the site</Label>
+                    <Select onValueChange={handleForm}>
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select The Site" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectGroup>
+                                <SelectItem value="Linkintime">Linkin Time</SelectItem>
+                                <SelectItem value="Bigshare">Big Share</SelectItem>
+                                <SelectItem value="Karvy">Karvy</SelectItem>
+                                <SelectItem value=".">More Sites Comming Soon...</SelectItem>
+                            </SelectGroup>
+                        </SelectContent>
+                    </Select>
 
-                <Select onValueChange={handleForm}>
-                    <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select The Site" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectGroup>
-                            <SelectItem value="Linkintime">Linkin Time</SelectItem>
-                            <SelectItem value="Bigshare">Big Share</SelectItem>
-                            <SelectItem value="Karvy">Karvy</SelectItem>
-                            <SelectItem value=".">More Sites Comming Soon...</SelectItem>
-                        </SelectGroup>
-                    </SelectContent>
-                </Select>
-
+                </div>
                 <Separator />
                 <ProfileForm loading={loading} ipoList={ipoList} selectedSite={lsite} handleIpoStatusData={handleIpoStatusData} />
             </div>

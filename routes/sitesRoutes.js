@@ -8,7 +8,7 @@ import { downloadFile, getIpoList, getKarvyData, getbigshareData, getlinkintimeD
 
 router.get('/download/:fileName', protect, downloadFile)
 router.get('/getIpoList/:id', protect, getIpoList)
-router.get('/karvy', protect, getKarvyData)
+router.post('/karvy', protect, getKarvyData)
 router.post('/bigshare', protect, getbigshareData)
 router.post('/linkintime', protect, getlinkintimeData)
 

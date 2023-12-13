@@ -1,12 +1,14 @@
 // ProtectedRoutes.jsx
-import { useSelector } from 'react-redux';
 import { Outlet, Navigate } from 'react-router-dom';
+import { RootState } from '../store/store';
+import { useSelector } from 'react-redux';
 
 
 const ProtectedRoutes = () => {
-    const { userData } = useSelector((state: any) => state.user);
+    const user = useSelector((state: RootState) => state.auth.user);
 
-    return userData.authenticated === true ? <Outlet /> : <Navigate to="/" />
+
+    return user?._id ? <Outlet /> : <Navigate to="/" />
 
 
 };

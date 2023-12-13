@@ -1,6 +1,6 @@
 import { IPOList, bigshare, } from '../sites/bigshare.js';
 import { getLinkinIpoList, executeCommand } from '../sites/linkintime.js';
-import {  getKarvyIpoList } from '../sites/karvy.js';
+import { getKarvyIpoList, karvyCaptcha } from '../sites/karvy.js';
 import { v4 as uuidv4 } from 'uuid';
 import xlsx from 'xlsx';
 import { XMLParser } from "fast-xml-parser"
@@ -99,8 +99,73 @@ const getIpoList = asyncHandler(async (req, res) => {
 
 const getKarvyData = asyncHandler(async (req, res) => {
     try {
-        // Assuming karvyCaptcha returns a promise
-        await karvyCaptcha();
+        const { clientId } = req.body;
+
+        if (!clientId) {
+            return res.status(400).json({ error: 'clientId is required in the request body' });
+        }
+
+        // Check if a file was uploaded
+        if (!req.files || Object.keys(req.files).length === 0) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+        // Access the uploaded file
+        const uploadedFile = req.files.file; // Assuming the file input has the name 'file'
+        // Read the Excel file
+        const workbook = xlsx.read(uploadedFile.data, { type: 'buffer' });
+        // Assuming your data is in the first sheet (change as needed)
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        // Find the column index of the PAN column
+        const panColumnIndex = findColumnIndex(sheet, 'PAN');
+        if (panColumnIndex === -1) {
+            return res.status(400).json({ error: 'PAN NO column not found' });
+        }
+        // Collect all PANs in the sheet
+        const range = xlsx.utils.decode_range(sheet['!ref']);
+        var panList = [];
+
+        var failed_panlist = []
+        var panData = [];
+        const id = uuidv4()
+        for (let rowNum = range.s.r + 1; rowNum <= range.e.r; rowNum++) {
+            const cellAddress = { c: panColumnIndex, r: rowNum };
+            const cellRef = xlsx.utils.encode_cell(cellAddress);
+            const pan = sheet[cellRef] ? sheet[cellRef].v : null;
+            if (pan) {
+                panList.push(pan);
+                try {
+                    const ipo = await karvyCaptcha(pan, clientId);
+                    panData.push(ipo)
+                } catch (error) {
+                    // Handle errors by logging and adding to failed_panlist
+                    failed_panlist.push(pan);
+                }
+            }
+        }
+        const failed_data = failed_panlist
+        const data = panData
+        // Convert JSON data to worksheet
+        const ws = xlsx.utils.json_to_sheet(data);
+        // Create a workbook and add the worksheet
+        const wb = xlsx.utils.book_new();
+        xlsx.utils.book_append_sheet(wb, ws, 'IpoStatus');
+        // Write the workbook to a file
+        xlsx.writeFile(wb, `./uploads/KarvyIpoStatus_${id}.xlsx`);
+        // Check if there are failed PANs before creating a workbook and writing to a file
+        if (failed_data.length > 0) {
+            // Convert failed IPO data to worksheet
+            const failedWs = xlsx.utils.json_to_sheet(failed_data.map(pan => ({ PAN: pan, Status: 'Failed' })));
+            // Create a workbook and add the worksheet for failed data
+            const failedWb = xlsx.utils.book_new();
+            xlsx.utils.book_append_sheet(failedWb, failedWs, 'FailedIpoList');
+            // Write the workbook to a file for failed data
+            xlsx.writeFile(failedWb, `./uploads/FailedIpoList_${id}.xlsx`);
+            res.status(200).json({ success: `/download/KarvyIpoStatus_${id}.xlsx`, failed: `/download/FailedIpoList_${id}.xlsx`, result: data, failed_data: failed_data });
+
+        } else {
+            res.status(200).json({ success: `/download/KarvyIpoStatus_${id}.xlsx`, result: data, failed_data: failed_data });
+        }
 
     } catch (error) {
         console.error('Error:', error);

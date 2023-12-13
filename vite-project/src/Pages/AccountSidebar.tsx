@@ -1,6 +1,6 @@
 import { SidebarNav } from '@/components/sidebar-nav'
 import { Separator } from '@/components/ui/separator'
-import Home from './Home'
+import AccountPage from './AccountPage'
 const sidebarNavItems = [
     {
         title: "Check Allotment",
@@ -23,7 +23,7 @@ const sidebarNavItems = [
     //     href: "/home/display",
     // },
 ]
-const SidebarPage = () => {
+const AccountSidebarPage = () => {
     return (
         <div className="space-y-6 p-10 pb-16">
             <div className="space-y-0.5">
@@ -37,10 +37,10 @@ const SidebarPage = () => {
                 <aside className="-mx-4 lg:w-1/5">
                     <SidebarNav items={sidebarNavItems} />
                 </aside>
-                <Home />
+                <AccountPage />
             </div>
         </div>
     )
 }
 
-export default SidebarPage
+export default AccountSidebarPage
