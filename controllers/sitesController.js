@@ -6,6 +6,9 @@ import xlsx from 'xlsx';
 import { XMLParser } from "fast-xml-parser"
 import { company } from '../Models/IpoList.js';
 import asyncHandler from 'express-async-handler'
+import path from 'path';
+const publicDirectoryPath = path.join('uploads');
+
 
 const parser = new XMLParser();
 

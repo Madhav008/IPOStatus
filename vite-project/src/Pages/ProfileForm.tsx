@@ -142,9 +142,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
                     console.error('Error while fetching data:', error);
                     toast.error('Error while fetching data. Please try again.');
                 }
-            }
-
-            if (selectedSite === 'Bigshare') {
+            } else if (selectedSite === 'Bigshare') {
                 try {
                     const ldata = await getBigShareIpoData();
                     console.log(ldata)
@@ -157,9 +155,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
                     console.error('Error while fetching data:', error);
                     toast.error('Error while fetching data. Please try again.');
                 }
-            }
-
-            if (selectedSite === 'Karvy') {
+            } else if (selectedSite === 'Karvy') {
                 try {
                     const ldata = await getKarvyIpoData();
                     setData(ldata)
@@ -171,8 +167,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
                     console.error('Error while fetching data:', error);
                     toast.error('Error while fetching data. Please try again.');
                 }
-            }
-            else {
+            } else {
                 toast.dismiss(loadingToastId);
                 toast.error("More sites coming soon");
             }
