@@ -1,36 +1,10 @@
 import { createWorker } from 'tesseract.js';
-import puppeteer from 'puppeteer'
 import Jimp from 'jimp';
+import puppeteer from 'puppeteer'
 
-const getKarvyIpoList = async () => {
-    const browser = await puppeteer.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        headless: "new"
-    });
-    const page = await browser.newPage();
-
-    try {
-        await page.goto('https://rti.kfintech.com/ipostatus/');
-        await page.waitForSelector('#ddl_ipo');
-
-        const options = await page.evaluate(() => {
-            const selectElement = document.querySelector('#ddl_ipo');
-            const optionElements = selectElement.querySelectorAll('option'); // Select only uncommented options
-            const optionValues = Array.from(optionElements).map(option => option.textContent.trim() + "--" + option.value);
-            return optionValues;
-        });
-        return options;
-    } catch (error) {
-        console.error('Error:', error);
-    } finally {
-        await browser.close();
-    }
-
-}
 const sleep = (milliseconds) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds));
 };
-
 async function enhanceImage(imagePath, scaleFactor = 4) {
     try {
         // Read the image using Jimp
@@ -64,23 +38,16 @@ async function enhanceImage(imagePath, scaleFactor = 4) {
 
 const processPan = async (page, PAN, company_id, maxRetries = 3) => {
     for (let retryCount = 0; retryCount < maxRetries; retryCount++) {
-        await sleep(1000)
 
         const divSelector = 'img#captchaimg';
 
         await page.waitForSelector(divSelector);
 
-
+        // Get the bounding box of the div
         const divBoundingBox = await page.$eval(divSelector, div => {
             const { x, y, width, height } = div.getBoundingClientRect();
             return { x, y, width, height };
         });
-
-        // Check if the width is positive
-        if (divBoundingBox.width <= 0) {
-            console.error(`Error processing PAN ${PAN}: Width of the bounding box is not positive`);
-            divBoundingBox.width = divBoundingBox.width + 20
-        }
 
         // Capture screenshot of the div
         await page.screenshot({
@@ -175,10 +142,10 @@ const processPan = async (page, PAN, company_id, maxRetries = 3) => {
         }
     }
 }
-const karvyCaptcha = async (PAN, company_id) => {
+const karvyCaptcha = async (PAN = ["AEQPJ0761D", "CNWPJ4945S"], company_id = "HONB~honasa_cpleqfv10~0~03/11/2023~03/11/2023~EQT") => {
     const browser = await puppeteer.launch({
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        headless: "new",
+        headless: false,
     });
 
     const page = await browser.newPage();
@@ -193,11 +160,9 @@ const karvyCaptcha = async (PAN, company_id) => {
         const data = await processPan(page, Pan, company_id)
         processPandata.push(data)
     }
-    await browser.close()
 
     console.log(processPandata)
-
-    return processPandata;
+    await browser.close()
 }
 
 
@@ -228,6 +193,5 @@ async function decodeCaptcha() {
 }
 
 
-
-export { getKarvyIpoList, karvyCaptcha }
+karvyCaptcha()
 

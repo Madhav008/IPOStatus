@@ -12,6 +12,7 @@ const publicDirectoryPath = path.join('uploads');
 
 const parser = new XMLParser();
 
+
 const downloadFile = asyncHandler(async (req, res) => {
     const fileName = req.params.fileName;
     const filePath = path.join(publicDirectoryPath, fileName);
@@ -127,7 +128,7 @@ const getKarvyData = asyncHandler(async (req, res) => {
         // Collect all PANs in the sheet
         const range = xlsx.utils.decode_range(sheet['!ref']);
 
-        var failed_panlist = []
+        var pan_list = [];
         var panData = [];
         const id = uuidv4()
         for (let rowNum = range.s.r + 1; rowNum <= range.e.r; rowNum++) {
@@ -135,38 +136,22 @@ const getKarvyData = asyncHandler(async (req, res) => {
             const cellRef = xlsx.utils.encode_cell(cellAddress);
             const pan = sheet[cellRef] ? sheet[cellRef].v : null;
             if (pan) {
-                try {
-                    const ipo = await karvyCaptcha(pan.toUpperCase(), clientId);
-                    panData.push(ipo)
-                } catch (error) {
-                    // Handle errors by logging and adding to failed_panlist
-                    failed_panlist.push(pan);
-                }
+                pan_list.push(pan.toUpperCase())
             }
         }
-        const failed_data = failed_panlist
-        const data = panData
+        const ipo = await karvyCaptcha(pan_list, clientId);
+        panData.push(ipo)
+
         // Convert JSON data to worksheet
-        const ws = xlsx.utils.json_to_sheet(data);
+        const ws = xlsx.utils.json_to_sheet(panData);
         // Create a workbook and add the worksheet
         const wb = xlsx.utils.book_new();
         xlsx.utils.book_append_sheet(wb, ws, 'IpoStatus');
         // Write the workbook to a file
         xlsx.writeFile(wb, `./uploads/KarvyIpoStatus_${id}.xlsx`);
         // Check if there are failed PANs before creating a workbook and writing to a file
-        if (failed_data.length > 0) {
-            // Convert failed IPO data to worksheet
-            const failedWs = xlsx.utils.json_to_sheet(failed_data.map(pan => ({ PAN: pan, Status: 'Failed' })));
-            // Create a workbook and add the worksheet for failed data
-            const failedWb = xlsx.utils.book_new();
-            xlsx.utils.book_append_sheet(failedWb, failedWs, 'FailedIpoList');
-            // Write the workbook to a file for failed data
-            xlsx.writeFile(failedWb, `./uploads/FailedIpoList_${id}.xlsx`);
-            res.status(200).json({ success: `/download/KarvyIpoStatus_${id}.xlsx`, failed: `/download/FailedIpoList_${id}.xlsx`, result: data, failed_data: failed_data });
 
-        } else {
-            res.status(200).json({ success: `/download/KarvyIpoStatus_${id}.xlsx`, result: data, failed_data: failed_data });
-        }
+        res.status(200).json({ success: `/download/KarvyIpoStatus_${id}.xlsx`, result: panData });
 
     } catch (error) {
         console.error('Error:', error);
@@ -223,18 +208,11 @@ const getbigshareData = asyncHandler(async (req, res) => {
         xlsx.writeFile(wb, `./uploads/IpoStatus_${id}.xlsx`);
         // Check if there are failed PANs before creating a workbook and writing to a file
         if (failed_data.length > 0) {
-            // Convert failed IPO data to worksheet
-            const failedWs = xlsx.utils.json_to_sheet(failed_data.map(pan => ({ PAN: pan, Status: 'Failed' })));
-            // Create a workbook and add the worksheet for failed data
-            const failedWb = xlsx.utils.book_new();
-            xlsx.utils.book_append_sheet(failedWb, failedWs, 'FailedIpoList');
-            // Write the workbook to a file for failed data
-            xlsx.writeFile(failedWb, `./uploads/FailedIpoList_${id}.xlsx`);
-            res.status(200).json({ success: `/download/IpoStatus_${id}.xlsx`, failed: `/download/FailedIpoList_${id}.xlsx`, result: data, failed_data: failed_data });
-
-        } else {
-            res.status(200).json({ success: `/download/IpoStatus_${id}.xlsx`, result: data, failed_data: failed_data });
+            failed_data.forEach((e) => {
+                data.push({ PAN: e, Status: 'Failed' })
+            })
         }
+        res.status(200).json({ success: `/download/IpoStatus_${id}.xlsx`, result: data, failed_data: failed_data });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ error: 'Internal Server Error' });
@@ -281,9 +259,32 @@ const getlinkintimeData = asyncHandler(async (req, res) => {
 
                 if (val.d) {
                     const jObj = parser.parse(val.d);
-                    panList.push(jObj.NewDataSet);
+                    // panList.push(jObj.NewDataSet);
+
+                    if (jObj.NewDataSet === "") {
+                        console.log("No able to parse this PAN: " + pan);
+
+                        if (pan.length < 10) {
+                            panList.push({ Pan: pan, Qty: "Enter the Valid Pan!!" });
+                        } else {
+                            panList.push({ Pan: pan, Qty: "No Record Found!!" });
+                        }
+
+                    } else {
+                        var result = {
+                            Pan: pan,
+                            Qty: jObj.NewDataSet.Table?.ALLOT,
+                            Name: jObj.NewDataSet.Table?.NAME1,
+                            Cutoff_Price: jObj.NewDataSet.Table?.higher_priceband,
+                            Security_Applied: jObj.NewDataSet.Table?.SHARES,
+                            Category: jObj.NewDataSet.Table?.PEMNDG,
+                        }
+
+                        panList.push(result);
+                    }
                 } else {
                     console.log("No able to parse this PAN: " + pan);
+                    panList.push({ Pan: pan, Qty: "No Record Found!!" });
                     failedPans.push(pan);
                 }
             } catch (error) {
@@ -294,25 +295,11 @@ const getlinkintimeData = asyncHandler(async (req, res) => {
     }
     // Create a new workbook and worksheet for successful PANs
     const resultWorkbook = xlsx.utils.book_new();
-    const resultWorksheet = xlsx.utils.json_to_sheet(panList.flatMap(item => (item.Table ? item.Table : [])));
+    const resultWorksheet = xlsx.utils.json_to_sheet(panList.flatMap(item => (item)));
     xlsx.utils.book_append_sheet(resultWorkbook, resultWorksheet, 'ResultSheet');
     const resultFileName = `result_${id}.xlsx`;
     xlsx.writeFile(resultWorkbook, `./uploads/${resultFileName}`);
-
-
-    // Create a new workbook and worksheet for failed PANs
-    if (failedPans.length > 0) {
-        const failedWorkbook = xlsx.utils.book_new();
-        const failedWorksheet = xlsx.utils.json_to_sheet(failedPans.map(pan => ({ PAN: pan, Status: 'Failed' })));
-        xlsx.utils.book_append_sheet(failedWorkbook, failedWorksheet, 'FailedPanList');
-        const failedFileName = `failed_pans_${id}.xlsx`;
-        xlsx.writeFile(failedWorkbook, `./uploads/${failedFileName}`);
-
-        res.status(200).json({ success: `/download/${resultFileName}`, failed: `/download/${failedFileName}`, result: panList, failed_data: failedPans, });
-
-    } else {
-        res.status(200).json({ success: `/download/${resultFileName}`, result: panList, failed_data: failedPans, });
-    }
+    res.status(200).json({ success: `/download/${resultFileName}`, result: panList, failed_data: failedPans, });
 })
 
 
