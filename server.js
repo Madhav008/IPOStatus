@@ -50,6 +50,7 @@ app.use((req, res, next) => {
       method: req.method,
       url: req.originalUrl,
       status: res.statusCode,
+
       responseTime: `${responseTime}ms`,
     });
   });
@@ -60,6 +61,9 @@ app.use('/api/users', userRoutes);
 
 import siteRoutes from './routes/sitesRoutes.js';
 app.use('/api', siteRoutes);
+
+import excelRoutes from './routes/excelRoutes.js';
+app.use('/getExcel', excelRoutes)
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
