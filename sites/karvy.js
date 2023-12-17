@@ -51,9 +51,9 @@ async function enhanceImage(imagePath, scaleFactor = 4) {
         image.convolute(sharpenKernel);
 
         // Save the enhanced and resized image
-        await image.writeAsync('screenshot.png');
+        await image.writeAsync('screenshot1.png');
 
-        return 'screenshot.png';
+        return 'screenshot1.png';
     } catch (error) {
         console.error('Error enhancing image:', error);
         return null;
@@ -62,7 +62,21 @@ async function enhanceImage(imagePath, scaleFactor = 4) {
 }
 
 
-const processPan = async (page, PAN, company_id, maxRetries = 3) => {
+const processPan = async (PAN, company_id, maxRetries = 3) => {
+
+    const browser = await puppeteer.launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        // headless: "new",
+        headless: false
+    });
+
+    const page = await browser.newPage();
+    // page.setDefaultTimeout(2000);
+    await page.setViewport({ width: 1000, height: 800 });
+
+    await page.goto('https://kosmic.kfintech.com/ipostatus/');
+
+
     for (let retryCount = 0; retryCount < maxRetries; retryCount++) {
         await sleep(1000)
 
@@ -147,8 +161,10 @@ const processPan = async (page, PAN, company_id, maxRetries = 3) => {
                 });
 
                 await page.click('#lnk_new');
+                await browser.close()
 
                 return data
+
             } catch (error) {
 
                 console.log('Confirmation box appeared or timeout occurred. Handling this scenario...');
@@ -158,15 +174,19 @@ const processPan = async (page, PAN, company_id, maxRetries = 3) => {
                     return confirmationBox ? confirmationBox.textContent.trim() : null;
                 });
 
-                console.log('Confirmation text:', confirmationText);
+                console.log("Processing PAN " + PAN)
 
-                if (confirmationText.includes('CAPTCHA is invalid or Expired')) {
+
+                if (confirmationText.toLowerCase().includes('captcha')) {
                     console.log(`Retrying PAN ${PAN} due to CAPTCHA error. Retry count: ${retryCount + 1}`);
                     // Optionally, you can add a delay before retrying to avoid being blocked
                     await page.click('.jconfirm-buttons')
                     await page.waitForTimeout(1000);
+                    console.log('Confirmation text:', confirmationText);
                 } else {
+                    console.log('Confirmation text: line 171: ', confirmationText);
                     await page.click('.jconfirm-buttons');
+                    await browser.close()
                     return ({ PAN: PAN, QTY: confirmationText })
                 }
             }
@@ -174,26 +194,19 @@ const processPan = async (page, PAN, company_id, maxRetries = 3) => {
 
         }
     }
+    await browser.close()
+    return ({ PAN: PAN, QTY: "Not Able Process this PAN" })
 }
+
 const karvyCaptcha = async (PAN, company_id) => {
-    const browser = await puppeteer.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        headless: "new",
-    });
-
-    const page = await browser.newPage();
-    // page.setDefaultTimeout(2000);
-    await page.setViewport({ width: 1000, height: 800 });
-
-    await page.goto('https://kosmic.kfintech.com/ipostatus/');
 
     const processPandata = [];
 
     for (const Pan of PAN) {
-        const data = await processPan(page, Pan, company_id)
+        const data = await processPan(Pan, company_id)
         processPandata.push(data)
     }
-    await browser.close()
+
 
     console.log(processPandata)
 
@@ -213,9 +226,8 @@ async function decodeCaptcha() {
 
     const worker = await createWorker();
 
-    const ret = await worker.recognize('screenshot.png', 'eng');
+    const ret = await worker.recognize('screenshot1.png', 'eng');
 
-    console.log(ret.data.text)
     // Extract digits from the recognized text
     const numbersOnly = ret.data.text.match(/\d+/g);
 
@@ -223,7 +235,7 @@ async function decodeCaptcha() {
     const captchaCode = numbersOnly ? numbersOnly.join('') : '';
 
     await worker.terminate();
-
+    console.log(captchaCode)
     return captchaCode
 }
 

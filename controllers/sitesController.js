@@ -141,7 +141,8 @@ const getKarvyData = asyncHandler(async (req, res) => {
         const ipo = await karvyCaptcha(pan_list, clientId);
 
         // Convert JSON data to worksheet
-        const ws = xlsx.utils.json_to_sheet(ipo);
+        const filteredIpo = ipo.filter(item => item !== undefined);
+        const ws = xlsx.utils.json_to_sheet(filteredIpo);
         // Create a workbook and add the worksheet
         const wb = xlsx.utils.book_new();
         xlsx.utils.book_append_sheet(wb, ws, 'IpoStatus');
