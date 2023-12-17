@@ -32,7 +32,11 @@ const apiEndpoints = {
     getIpoData: 'api/:sitename',
     getIpoList: 'api/getIpoList/:sitename',
     login: 'api/users/login',
-    getProfile: 'api/users/profile'
+    getProfile: 'api/users/profile',
+    getFolders: 'getExcel/all',
+    getExcelResult: 'getExcel/data',
+
+
 };
 
 // Define functions to make Axios requests for your endpoints
@@ -54,5 +58,9 @@ export const ipoStatusApi = {
     getIpoData: <T>(sitename: string, requestData: any): Promise<any> => makeRequest<T>(apiEndpoints.getIpoData.replace(':sitename', sitename), 'POST', requestData),
     login: <T>(requestData: any): Promise<T> => makeRequest<T>(apiEndpoints.login, 'POST', requestData),
     getProfile: <T>(): Promise<any> => makeRequest<T>(apiEndpoints.getProfile),
+    getFolders: <T>(): Promise<any> => makeRequest<T>(apiEndpoints.getFolders),
+    getExcelResult: <T>(requestData: any): Promise<any> => makeRequest<T>(apiEndpoints.getExcelResult, 'POST', requestData),
+
+
 
 };

@@ -35,12 +35,46 @@ const Home = () => {
 
     const [failed, setFailed] = useState(0)
     const [total, settotal] = useState(0)
+    const [Alloted, SetAlloted] = useState(0);
+    const [NotAlloted, SetNotAlloted] = useState(0);
 
 
 
     const handleIpoStatusData = (data: any) => {
         setFailed(data.failed_data.length)
         settotal(data.failed_data.length + data.result.length)
+        SetAlloted(0)
+        SetNotAlloted(0)
+
+        if (data.site === 'Linkintime') {
+            data.result.forEach((ele: any) => {
+                if (ele.Qty > 0) {
+                    SetAlloted((prevAlloted: any) => prevAlloted + 1);
+                } else {
+                    SetNotAlloted((prevNotAlloted: any) => prevNotAlloted + 1)
+                }
+            });
+        }
+
+        if (data.site === 'Bigshare') {
+            data.result.forEach((ele: any) => {
+                if (ele.Alloted != 'NON-ALLOTTE' && ele.Alloted != "") {
+                    SetAlloted((prevAlloted: any) => prevAlloted + 1);
+                } else {
+                    SetNotAlloted((prevNotAlloted: any) => prevNotAlloted + 1)
+                }   
+            });
+        }
+
+        if (data.site === 'Karvy') {
+            data.result.forEach((ele: any) => {
+                if (ele.Alloted !== 0) {
+                    SetAlloted((prevAlloted: any) => prevAlloted + 1);
+                } else {
+                    SetNotAlloted((prevNotAlloted: any) => prevNotAlloted + 1)
+                }
+            });
+        }
     }
 
 
@@ -105,7 +139,7 @@ const Home = () => {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-center">45</div>
+                        <div className="text-2xl font-bold text-center">{Alloted}</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -115,7 +149,7 @@ const Home = () => {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-center">45</div>
+                        <div className="text-2xl font-bold text-center">{NotAlloted}</div>
                     </CardContent>
                 </Card>
                 {/*       <Card>

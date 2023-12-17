@@ -129,7 +129,6 @@ const getKarvyData = asyncHandler(async (req, res) => {
         const range = xlsx.utils.decode_range(sheet['!ref']);
 
         var pan_list = [];
-        var panData = [];
         const id = uuidv4()
         for (let rowNum = range.s.r + 1; rowNum <= range.e.r; rowNum++) {
             const cellAddress = { c: panColumnIndex, r: rowNum };
@@ -140,10 +139,9 @@ const getKarvyData = asyncHandler(async (req, res) => {
             }
         }
         const ipo = await karvyCaptcha(pan_list, clientId);
-        panData.push(ipo)
 
         // Convert JSON data to worksheet
-        const ws = xlsx.utils.json_to_sheet(panData);
+        const ws = xlsx.utils.json_to_sheet(ipo);
         // Create a workbook and add the worksheet
         const wb = xlsx.utils.book_new();
         xlsx.utils.book_append_sheet(wb, ws, 'IpoStatus');
@@ -151,7 +149,7 @@ const getKarvyData = asyncHandler(async (req, res) => {
         xlsx.writeFile(wb, `./uploads/KarvyIpoStatus_${id}.xlsx`);
         // Check if there are failed PANs before creating a workbook and writing to a file
 
-        res.status(200).json({ success: `/download/KarvyIpoStatus_${id}.xlsx`, result: panData });
+        res.status(200).json({ success: `/download/KarvyIpoStatus_${id}.xlsx`, result: ipo });
 
     } catch (error) {
         console.error('Error:', error);
@@ -311,8 +309,6 @@ export {
     downloadFile,
     getIpoList
 }
-
-
 
 
 

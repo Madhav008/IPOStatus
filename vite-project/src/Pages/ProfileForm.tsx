@@ -49,28 +49,6 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
             // Handle the error appropriately (e.g., display an error message to the user)
         }
     };
-    const handleFailed = async () => {
-        try {
-            const { failed } = data || {};
-            if (failed) {
-                // Create the download URL
-                const downloadUrl = `${baseURL}/api${failed}`;
-
-                // Open the download URL in a new tab
-                const newTab = window.open(downloadUrl, '_blank');
-
-                // Check if the new tab was successfully opened
-                if (!newTab) {
-                    console.error('Failed to open new tab for download.');
-                    // Handle the error appropriately (e.g., display an error message to the user)
-                    return;
-                }
-            }
-        } catch (error) {
-            console.error('Error during download:', error);
-            // Handle the error appropriately (e.g., display an error message to the user)
-        }
-    };
 
     const getIpoData = async (url: string) => {
         if (!file) {
@@ -135,7 +113,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
                     const ldata = await getLinkinIpoData();
 
                     setData(ldata)
-                    handleIpoStatusData(ldata)
+                    handleIpoStatusData({ site: "Linkintime", ...ldata })
                     toast.dismiss(loadingToastId);
                     toast.success("Data Fetched Successfully")
                 } catch (error) {
@@ -146,9 +124,8 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
             } else if (selectedSite === 'Bigshare') {
                 try {
                     const ldata = await getBigShareIpoData();
-                    console.log(ldata)
                     setData(ldata)
-                    handleIpoStatusData(ldata)
+                    handleIpoStatusData({ site: "Bigshare", ...ldata })
                     toast.dismiss(loadingToastId);
                     toast.success("Data Fetched Successfully")
                 } catch (error) {
@@ -160,7 +137,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
                 try {
                     const ldata = await getKarvyIpoData();
                     setData(ldata)
-                    handleIpoStatusData(ldata)
+                    handleIpoStatusData({ site: "Karvy", ...ldata })
                     toast.dismiss(loadingToastId);
                     toast.success("Data Fetched Successfully")
                 } catch (error) {
@@ -225,11 +202,6 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
                         </span>
                     </Label>
                     <Button onClick={handleDownload} className="bg-white w-max m-6">Download Excel</Button>
-                    {data.failed !== null && (
-                        <Button onClick={handleFailed} className="bg-white w-max m-6">
-                            Download Failed PAN's
-                        </Button>
-                    )}
                 </>
             )}
 

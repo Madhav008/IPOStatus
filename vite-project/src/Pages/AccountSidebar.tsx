@@ -7,7 +7,7 @@ const sidebarNavItems = [
         href: "/home",
     },
     {
-        title: "Account",
+        title: "Premium Service ",
         href: "/account",
     },
     {
