@@ -3,4 +3,8 @@
 uploads
 .env
 package-lock.json
+package-lock.json
+yarn.lock
+app.log
+
 
