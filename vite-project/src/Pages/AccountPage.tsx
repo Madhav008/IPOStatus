@@ -23,6 +23,7 @@ interface AccountPageProps { }
 
 interface IpoStatusData {
     success: string;
+    result: Array<any>;
     // Add other properties based on your actual response structure
 }
 
@@ -35,6 +36,11 @@ const AccountPage: React.FC<AccountPageProps> = () => {
     const [lloading, setLoading] = useState<boolean>(false);
     const [company, setCompany] = useState<string>('');
     const [data, setData] = useState<IpoStatusData | null>(null);
+    const [Alloted, setAlloted] = useState(0);
+    const [NotAlloted, setNotAlloted] = useState(0);
+    const [Proccessed, setProccessed] = useState(0);
+
+
 
     const handleDownload = async () => {
         try {
@@ -66,6 +72,22 @@ const AccountPage: React.FC<AccountPageProps> = () => {
         }
     };
 
+    const checkCountStatus = async (ipoData: IpoStatusData) => {
+        setAlloted(0)
+        setNotAlloted(0)
+        setProccessed(0)
+        setProccessed(ipoData?.result.length);
+
+        ipoData?.result.forEach((pan: any) => {
+            console.log(pan)
+            if (pan.ALLOT && pan.ALLOT != "0") {
+                setAlloted((prevAlloted) => prevAlloted + 1)
+            } else {
+                setNotAlloted((prevNotAllotted) => prevNotAllotted + 1)
+            }
+        });
+    }
+
     async function handleSubmit(event: React.FormEvent) {
         const loadingToastId = toast.loading('Getting the Data please wait ...');
         event.preventDefault();
@@ -82,6 +104,7 @@ const AccountPage: React.FC<AccountPageProps> = () => {
 
             const result = await response.data;
             setData(result);
+            checkCountStatus(result)
             setLoading(false);
             return result;
         } catch (error) {
@@ -112,6 +135,8 @@ const AccountPage: React.FC<AccountPageProps> = () => {
         }
         getTheData();
     }, []);
+
+
 
     if (lloading) {
         return <div>Loading...</div>;
@@ -174,7 +199,7 @@ const AccountPage: React.FC<AccountPageProps> = () => {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-center">{ }</div>
+                        <div className="text-2xl font-bold text-center">{Proccessed}</div>
                     </CardContent>
                 </Card>
 
@@ -186,7 +211,7 @@ const AccountPage: React.FC<AccountPageProps> = () => {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-center">{ }</div>
+                        <div className="text-2xl font-bold text-center">{0}</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -196,7 +221,7 @@ const AccountPage: React.FC<AccountPageProps> = () => {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-center">{ }</div>
+                        <div className="text-2xl font-bold text-center">{Alloted}</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -206,31 +231,9 @@ const AccountPage: React.FC<AccountPageProps> = () => {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-center">{ }</div>
+                        <div className="text-2xl font-bold text-center">{NotAlloted}</div>
                     </CardContent>
                 </Card>
-                {/*       <Card>
-                <CardHeader className="flex flex-row items-center text-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium w-[100px]">
-                        Average Share Per App
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold text-center">45</div>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader className="flex flex-row items-center text-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium w-[100px]">
-                        Total Share Alloted
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold text-center">45</div>
-                </CardContent>
-            </Card> */}
-
-
             </div>
         </div>
     )
