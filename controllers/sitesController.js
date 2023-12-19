@@ -255,7 +255,6 @@ const getlinkintimeData = asyncHandler(async (req, res) => {
         if (pan) {
             try {
                 const { status, data } = await executeCommand(clientId, pan.replace(/\s/g, ''));
-
                 if (status === 200) {
                     const val = JSON.parse(data);
 

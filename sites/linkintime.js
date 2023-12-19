@@ -32,7 +32,7 @@ const executeCommand = async (clientId, pan) => {
 
                     const statusLine = lines[0];
                     if (statusLine.length > 0) {
-                        const statusCode = statusLine.split(' ');;
+                        const statusCode = statusLine.split(' ')[1];
                         const status = statusCode ? parseInt(statusCode, 10) : null;
                         // Join the remaining lines to get the response body
                         const body = lines.slice(1).join('\n');
