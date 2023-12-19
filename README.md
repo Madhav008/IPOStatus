@@ -23,16 +23,23 @@
         [*] return the excel
     [*] Add the excel feature
     [*] Select the IPO list from the specific site
-
-    [] Setup a cron job 
-    [] Add the couter for excel
+    [*] Create the counter for the excel page alloted and not alloted
+    
+    [] Cron Jobs
+        [] Create a cron job to delete and add the ipo list in database
+        [] Create a cron job to delete the screenshots
+    
     [] Check for the user count
-    [] Create the Footer and Dashboard
-    [] Setup the admin pannel for uploading the company excel
     [] Add the Purva
     [] Add the Skyline
-    [] Check the Files Parllelly
+    [] Create the Footer and Dashboard Page
 
+
+#   Unknown Features
+    [] Setup the admin pannel for uploading the company excel
+    [] Create a formater for formating the excel in desired format
+    [] Create a fast way to upload the excel in database
+    [] Check the Files Parllelly
 
 #   Bugs
     [] Login to press enter 
