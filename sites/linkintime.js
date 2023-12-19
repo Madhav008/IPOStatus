@@ -39,7 +39,7 @@ const executeCommand = async (clientId, pan) => {
                         const bodyArray = body.split('\n');
                         const data = bodyArray[bodyArray.length - 1];
 
-                        logger.info({ status, data })
+                        // logger.info({ status, data })
                         // Resolve with an object containing status and responseBody
                         resolve({ status, data });
                     }
