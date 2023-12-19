@@ -29,7 +29,7 @@ const executeCommand = async (clientId, pan) => {
                 const lines = stdout.split('\n');
                 // Extract the status code from the first line
                 const statusLine = lines[0];
-                const statusCode = statusLine.match(/HTTP\/1\.\d (\d+)/)[1];
+                const statusCode = statusLine?.match(/HTTP\/1\.\d (\d+)/)[1];
                 const status = statusCode ? parseInt(statusCode, 10) : null;
                 // Join the remaining lines to get the response body
                 const body = lines.slice(1).join('\n');
@@ -48,4 +48,4 @@ const executeCommand = async (clientId, pan) => {
 
 
 export { getLinkinIpoList, executeCommand }
-executeCommand(11719, "AFJPS3657R")
+// executeCommand(11719, "AFJPS3657R")
