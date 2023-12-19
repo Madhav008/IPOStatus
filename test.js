@@ -1,6 +1,7 @@
 import { createWorker } from 'tesseract.js';
 import Jimp from 'jimp';
 import puppeteer from 'puppeteer'
+import { executeCommand } from './sites/linkintime.js';
 
 const sleep = (milliseconds) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds));
@@ -191,7 +192,28 @@ async function decodeCaptcha() {
 
     return captchaCode
 }
+import { XMLParser } from "fast-xml-parser"
+
+const parser = new XMLParser()
+
+async function linkintime() {
+    const data = await executeCommand('11719', 'AXZPD8630M'.replace(/\s/g, ''));
+
+    const val = JSON.parse(data)
+    if (val.d) {
+        const jObj = parser.parse(val.d);
+        // panList.push(jObj.NewDataSet);
+
+        if (jObj.NewDataSet === "") {
+            console.log("No able to parse this PAN: ");
 
 
-karvyCaptcha()
 
+        }
+    } else {
+        console.log("No able to parse this : ");
+    }
+    console.log(val)
+}
+
+linkintime()

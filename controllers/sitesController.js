@@ -288,6 +288,7 @@ const getlinkintimeData = asyncHandler(async (req, res) => {
                 }
             } catch (error) {
                 console.log(error);
+                panList.push({ Pan: pan, Qty: "Not Able to get the data!!" });
                 failedPans.push(pan);
             }
         }
