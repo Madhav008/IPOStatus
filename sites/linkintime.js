@@ -28,17 +28,22 @@ const executeCommand = async (clientId, pan) => {
             } else {
                 const lines = stdout.split('\n');
                 // Extract the status code from the first line
-                const statusLine = lines[0];
-                const statusCode = statusLine?.match(/HTTP\/1\.\d (\d+)/)[1];
-                const status = statusCode ? parseInt(statusCode, 10) : null;
-                // Join the remaining lines to get the response body
-                const body = lines.slice(1).join('\n');
-                const bodyArray = body.split('\n');
-                const data = bodyArray[bodyArray.length - 1];
+                if (lines.length > 0) {
 
-                logger.info({ status, data })
-                // Resolve with an object containing status and responseBody
-                resolve({ status, data });
+                    const statusLine = lines[0];
+                    if (statusLine.length > 0) {
+                        const statusCode = statusLine?.match(/HTTP\/1\.\d (\d+)/)[1];
+                        const status = statusCode ? parseInt(statusCode, 10) : null;
+                        // Join the remaining lines to get the response body
+                        const body = lines.slice(1).join('\n');
+                        const bodyArray = body.split('\n');
+                        const data = bodyArray[bodyArray.length - 1];
+
+                        logger.info({ status, data })
+                        // Resolve with an object containing status and responseBody
+                        resolve({ status, data });
+                    }
+                }
             }
         });
     });
