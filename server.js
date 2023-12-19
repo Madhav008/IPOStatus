@@ -6,8 +6,7 @@ import { connectDB } from './utils/initDB.js';
 import userRoutes from './routes/userRoutes.js';
 import cors from 'cors';
 import morgan from 'morgan';
-import winston from 'winston';
-
+import { logger } from "./logger.js"
 connectDB();
 const parser = new XMLParser();
 
@@ -27,15 +26,6 @@ app.use(express.json());
 
 const publicDirectoryPath = path.join('uploads');
 app.use(express.static(publicDirectoryPath));
-
-// Setup Winston logger
-const logger = winston.createLogger({
-  transports: [
-    new winston.transports.Console(),
-    new winston.transports.File({ filename: 'app.log' }),
-  ],
-  format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
-});
 
 // Middleware to log requests
 app.use(morgan('dev'));

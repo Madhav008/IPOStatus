@@ -197,7 +197,7 @@ import { XMLParser } from "fast-xml-parser"
 const parser = new XMLParser()
 
 async function linkintime() {
-    const data = await executeCommand('11719', 'AXZPD8630M'.replace(/\s/g, ''));
+    const { status, data } = await executeCommand('11719', 'AXZPD8630M'.replace(/\s/g, ''));
 
     const val = JSON.parse(data)
     if (val.d) {

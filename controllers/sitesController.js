@@ -7,6 +7,7 @@ import { XMLParser } from "fast-xml-parser"
 import { company } from '../Models/IpoList.js';
 import asyncHandler from 'express-async-handler'
 import path from 'path';
+import { logger } from '../logger.js'
 const publicDirectoryPath = path.join('uploads');
 
 
@@ -253,41 +254,48 @@ const getlinkintimeData = asyncHandler(async (req, res) => {
         const pan = sheet[cellRef] ? sheet[cellRef].v : null;
         if (pan) {
             try {
-                const data = await executeCommand(clientId, pan.replace(/\s/g, ''));
-                const val = JSON.parse(data);
+                const { status, data } = await executeCommand(clientId, pan.replace(/\s/g, ''));
 
-                if (val.d) {
-                    const jObj = parser.parse(val.d);
-                    // panList.push(jObj.NewDataSet);
+                if (status === 200) {
+                    const val = JSON.parse(data);
 
-                    if (jObj.NewDataSet === "") {
-                        console.log("No able to parse this PAN: " + pan);
+                    if (val.d) {
+                        const jObj = parser.parse(val.d);
+                        // panList.push(jObj.NewDataSet);
 
-                        if (pan.length < 10) {
-                            panList.push({ Pan: pan, Qty: "Enter the Valid Pan!!" });
+                        if (jObj.NewDataSet === "") {
+                            logger.info("No able to parse this PAN: " + pan);
+
+                            if (pan.length < 10) {
+                                panList.push({ Pan: pan, Qty: "Enter the Valid Pan!!" });
+                            } else {
+                                panList.push({ Pan: pan, Qty: "No Record Found!!" });
+                            }
+
                         } else {
-                            panList.push({ Pan: pan, Qty: "No Record Found!!" });
-                        }
+                            var result = {
+                                Pan: pan,
+                                Qty: jObj.NewDataSet.Table?.ALLOT,
+                                Name: jObj.NewDataSet.Table?.NAME1,
+                                Cutoff_Price: jObj.NewDataSet.Table?.higher_priceband,
+                                Security_Applied: jObj.NewDataSet.Table?.SHARES,
+                                Category: jObj.NewDataSet.Table?.PEMNDG,
+                            }
 
+                            panList.push(result);
+                        }
                     } else {
-                        var result = {
-                            Pan: pan,
-                            Qty: jObj.NewDataSet.Table?.ALLOT,
-                            Name: jObj.NewDataSet.Table?.NAME1,
-                            Cutoff_Price: jObj.NewDataSet.Table?.higher_priceband,
-                            Security_Applied: jObj.NewDataSet.Table?.SHARES,
-                            Category: jObj.NewDataSet.Table?.PEMNDG,
-                        }
-
-                        panList.push(result);
+                        logger.info("No able to parse this PAN: " + pan);
+                        panList.push({ Pan: pan, Qty: "No Record Found!!" });
+                        failedPans.push(pan);
                     }
                 } else {
-                    console.log("No able to parse this PAN: " + pan);
-                    panList.push({ Pan: pan, Qty: "No Record Found!!" });
+                    logger.info(error);
+                    panList.push({ Pan: pan, Qty: "Not Able to get the data!!" });
                     failedPans.push(pan);
                 }
             } catch (error) {
-                console.log(error);
+                logger.info(error);
                 panList.push({ Pan: pan, Qty: "Not Able to get the data!!" });
                 failedPans.push(pan);
             }
