@@ -264,7 +264,7 @@ const getlinkintimeData = asyncHandler(async (req, res) => {
                         // panList.push(jObj.NewDataSet);
 
                         if (jObj.NewDataSet === "") {
-                            logger.info("No able to parse this PAN: " + pan);
+                            console.log("No able to parse this PAN: " + pan);
 
                             if (pan.length < 10) {
                                 panList.push({ Pan: pan, Qty: "Enter the Valid Pan!!" });
@@ -285,17 +285,17 @@ const getlinkintimeData = asyncHandler(async (req, res) => {
                             panList.push(result);
                         }
                     } else {
-                        logger.info("No able to parse this PAN: " + pan);
+                        console.log("No able to parse this PAN: " + pan);
                         panList.push({ Pan: pan, Qty: "No Record Found!!" });
                         failedPans.push(pan);
                     }
                 } else {
-                    logger.info(error);
+                    console.log(error);
                     panList.push({ Pan: pan, Qty: "Not Able to get the data!!" });
                     failedPans.push(pan);
                 }
             } catch (error) {
-                logger.info(error);
+                console.log(error);
                 panList.push({ Pan: pan, Qty: "Not Able to get the data!!" });
                 failedPans.push(pan);
             }
