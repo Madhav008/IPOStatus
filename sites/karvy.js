@@ -66,8 +66,8 @@ const processPan = async (PAN, company_id, maxRetries = 3) => {
 
     const browser = await puppeteer.launch({
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        // headless: "new",
-        headless: false
+        headless: "new",
+        // headless: false
     });
 
     const page = await browser.newPage();
