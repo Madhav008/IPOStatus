@@ -64,6 +64,12 @@ app.use('/api', siteRoutes);
 import excelRoutes from './routes/excelRoutes.js';
 app.use('/getExcel', excelRoutes)
 
+
+import cronRoutes from './routes/cronRoutes.js';
+app.use('/cron', cronRoutes)
+
+
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

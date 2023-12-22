@@ -6,6 +6,6 @@ const IpoCompany = new mongoose.Schema({
 
 });
 
-const company = mongoose.model('company', IpoCompany);
+const company = mongoose.model('companies', IpoCompany);
 
 export { company };

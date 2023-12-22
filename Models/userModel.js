@@ -21,6 +21,11 @@ const userSchema = mongoose.Schema(
             required: true,
             default: false,
         },
+        count: {
+            type: Number,
+            required: true,
+            default: 100,
+        }
     },
     {
         timestamps: true,

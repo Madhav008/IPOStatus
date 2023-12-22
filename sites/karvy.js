@@ -10,7 +10,7 @@ const getKarvyIpoList = async () => {
     const page = await browser.newPage();
 
     try {
-        await page.goto('https://rti.kfintech.com/ipostatus/');
+        await page.goto('https://kprism.kfintech.com/ipostatus/');
         await page.waitForSelector('#ddl_ipo');
 
         const options = await page.evaluate(() => {
