@@ -139,7 +139,7 @@ const getKarvyData = asyncHandler(async (req, res) => {
                 pan_list.push(pan.toUpperCase())
             }
         }
-        const ipo = await karvyCaptcha(pan_list, clientId);
+        const { processPandata: ipo, failedPandata } = await karvyCaptcha(pan_list, clientId);
 
         // Convert JSON data to worksheet
         const filteredIpo = ipo.filter(item => item !== undefined);
@@ -151,7 +151,7 @@ const getKarvyData = asyncHandler(async (req, res) => {
         xlsx.writeFile(wb, `./uploads/KarvyIpoStatus_${id}.xlsx`);
         // Check if there are failed PANs before creating a workbook and writing to a file
 
-        res.status(200).json({ success: `/download/KarvyIpoStatus_${id}.xlsx`, result: ipo });
+        res.status(200).json({ success: `/download/KarvyIpoStatus_${id}.xlsx`, result: ipo, failed_data: failedPandata });
 
     } catch (error) {
         console.error('Error:', error);
