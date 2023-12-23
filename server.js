@@ -31,16 +31,8 @@ app.use(express.static(publicDirectoryPath));
 
 // Middleware to log requests
 app.use(morgan('dev'));
-// Middleware to handle timeouts
-app.use((req, res, next) => {
-  // Extend the timeout for all routes to 1hr 
-  req.setTimeout((60*60*1000), () => {
-    console.log('Request timed out');
-    res.status(503).send('Service Unavailable');
-  });
 
-  next();
-});
+
 // Middleware to log response time
 app.use((req, res, next) => {
   res.on('finish', () => {
@@ -71,5 +63,5 @@ app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-ngrok.connect({ addr: port, authtoken_from_env: true })
-  .then(listener => console.log(`Ingress established at: ${listener.url()}`));
+// ngrok.connect({ addr: port, authtoken_from_env: true })
+//   .then(listener => console.log(`Ingress established at: ${listener.url()}`));

@@ -1,3 +1,5 @@
+import axios from 'axios'
+import cheerio from 'cheerio'
 import { createWorker } from 'tesseract.js';
 import Jimp from 'jimp';
 import puppeteer from 'puppeteer'
@@ -6,6 +8,8 @@ import { executeCommand } from './sites/linkintime.js';
 const sleep = (milliseconds) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds));
 };
+
+
 async function enhanceImage(imagePath, scaleFactor = 4) {
     try {
         // Read the image using Jimp
@@ -35,143 +39,137 @@ async function enhanceImage(imagePath, scaleFactor = 4) {
     }
 
 }
+function decodeMessaage(html) {
 
+    const $ = cheerio.load(html);
 
-const processPan = async (page, PAN, company_id, maxRetries = 3) => {
-    for (let retryCount = 0; retryCount < maxRetries; retryCount++) {
+    // Select the script tag and get its text content
+    const scriptContent = $('script').text();
 
-        const divSelector = 'img#captchaimg';
+    // Extract the ShowMessage function and its arguments using a regular expression
+    const regexResult = /ShowMessage\('([^']+)',\s*'([^']+)'\)/.exec(scriptContent);
 
-        await page.waitForSelector(divSelector);
+    if (regexResult && regexResult[1] && regexResult[2]) {
+        const functionName = 'ShowMessage';
+        const argument1 = regexResult[1];
+        const argument2 = regexResult[2];
 
-        // Get the bounding box of the div
-        const divBoundingBox = await page.$eval(divSelector, div => {
-            const { x, y, width, height } = div.getBoundingClientRect();
-            return { x, y, width, height };
-        });
-
-        // Capture screenshot of the div
-        await page.screenshot({
-            path: 'screenshot.png',
-            clip: {
-                x: divBoundingBox.x,
-                y: divBoundingBox.y,
-                width: divBoundingBox.width,
-                height: divBoundingBox.height,
-            },
-        });
-
-        // Create the worker outside the inner function
-        const captchaCode = await decodeCaptcha()
-
-        console.log('Screenshot captured successfully!');
-
-
-        if (captchaCode) {
-
-            await page.select('#ddl_ipo', company_id);
-            await page.click('#pan');
-            await page.type('#txt_pan', PAN);
-
-
-            await page.type('#txt_captcha', captchaCode + '');
-
-
-            await page.click('#btn_submit_query');
-
-            try {
-                await page.waitForSelector('#hdr_ipo', { timeout: 2000 });
-
-                const data = await page.evaluate(() => {
-                    const rowData = {};
-
-                    // Select the container with class "successbox_md"
-                    const container = document.querySelector('.successbox_md');
-
-                    // Check if the container is found
-                    if (container) {
-                        // Select elements within the container using querySelector or querySelectorAll
-                        const applicationNumber = container.querySelector('#grid_results_ctl02_l1');
-                        const category = container.querySelector('#grid_results_ctl02_Label1');
-                        const name = container.querySelector('#grid_results_ctl02_Label2');
-                        const clientId = container.querySelector('#grid_results_ctl02_lbl_dpclid');
-                        const pan = container.querySelector('#grid_results_ctl02_lbl_pan');
-                        const applied = container.querySelector('#grid_results_ctl02_Label5');
-                        const allotted = container.querySelector('#grid_results_ctl02_lbl_allot');
-
-                        // Check if elements are found
-                        if (applicationNumber && category && name && clientId && pan && applied && allotted) {
-                            rowData['Application Number'] = applicationNumber.textContent.trim();
-                            rowData['Category'] = category.textContent.trim();
-                            rowData['Name'] = name.textContent.trim();
-                            rowData['Client ID'] = clientId.textContent.trim();
-                            rowData['PAN'] = pan.textContent.trim();
-                            rowData['Applied'] = parseInt(applied.textContent.trim());
-                            rowData['Alloted'] = parseInt(allotted.textContent.trim());
-                        }
-                    }
-
-                    return rowData;
-                });
-
-                await page.click('#lnk_new');
-
-                return data
-            } catch (error) {
-
-                console.log('Confirmation box appeared or timeout occurred. Handling this scenario...');
-
-                const confirmationText = await page.evaluate(() => {
-                    const confirmationBox = document.querySelector('.jconfirm-content');
-                    return confirmationBox ? confirmationBox.textContent.trim() : null;
-                });
-
-                console.log('Confirmation text:', confirmationText);
-
-                if (confirmationText.includes('CAPTCHA is invalid or Expired')) {
-                    console.log(`Retrying PAN ${PAN} due to CAPTCHA error. Retry count: ${retryCount + 1}`);
-                    // Optionally, you can add a delay before retrying to avoid being blocked
-                    await page.click('.jconfirm-buttons')
-                    await page.waitForTimeout(1000);
-                } else {
-                    await page.click('.jconfirm-buttons');
-                    return ({ PAN: PAN, QTY: confirmationText })
-                }
-            }
-
-
-        }
+        // console.log(`${functionName}('${argument1}', '${argument2}')`);
+        return `${functionName}('${argument1}', '${argument2}')`
+    } else {
+        return 'ShowMessage function not found.'
+        // console.log('ShowMessage function not found.');
     }
 }
-const karvyCaptcha = async (PAN = ["AEQPJ0761D", "CNWPJ4945S"], company_id = "HONB~honasa_cpleqfv10~0~03/11/2023~03/11/2023~EQT") => {
-    const browser = await puppeteer.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        headless: false,
+
+
+function getIPOAllotment(html) {
+    const $ = cheerio.load(html)
+    // Extracting elements from the HTML
+    // Extracting specific details
+    const applicationNumber = $('#l1').text().trim();
+    const category = $('#Label1').text().trim();
+    const name = $('#Label2').text().trim();
+    const dpIdClientId = $('#lbl_dpclid').text().trim();
+    const pan = $('#lbl_pan').text().trim();
+    const applied = $('#Label5').text().trim();
+    const allotted = $('#lbl_allot').text().trim();
+
+    /* 
+    console.log('Application Number:', applicationNumber);
+    console.log('Category:', category);
+    console.log('Name:', name);
+    console.log('DP ID Client ID:', dpIdClientId);
+    console.log('PAN:', pan);
+    console.log('Applied:', applied);
+    console.log('Alloted:', allotted);
+ */
+    return {
+        'Application Number': applicationNumber,
+        'Category': category,
+        'Name': name,
+        'DP ID Client ID': dpIdClientId,
+        'PAN': pan,
+        'Applied': applied,
+        'Alloted': allotted
+    };
+}
+
+
+const scrapeResultPage = (resp) => {
+    const msg = decodeMessaage(resp)
+    const data = getIPOAllotment(resp)
+    if (msg == "ShowMessage function not found.") {
+        return data;
+    } else {
+        return msg;
+    }
+};
+
+
+import { exec, execSync } from 'child_process';
+
+const executeCmd = async (company_id, pan, captcha) => {
+    // console.log(`bash karvy.sh ${company_id} ${pan} ${captcha}`)
+    return new Promise((resolve, reject) => {
+        exec(`bash karvy.sh ${company_id} ${pan} ${captcha}`, (error, stdout, stderr) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve(stdout.toString());
+            }
+        });
     });
+};
 
-    const page = await browser.newPage();
-    // page.setDefaultTimeout(2000);
-    await page.setViewport({ width: 1000, height: 800 });
+const getCaptcha = async () => {
+    try {
+        const result = execSync('bash captcha.sh', { encoding: 'utf-8' });
+        return result.trim();
+    } catch (error) {
+        console.error('Error:', error.message);
+    }
+};
+async function getPanData(PAN, company_id) {
 
-    await page.goto('https://kosmic.kfintech.com/ipostatus/');
+    const capPng = await getCaptcha()
+
+    console.log(capPng)
+    // Create the worker outside the inner function
+    const captchaCode = await decodeCaptcha(capPng)
+
+    console.log(captchaCode);
+
+    const data = await executeCmd(company_id, PAN, captchaCode)
+    // $ bash karvy.sh "INOL~inox_indiapleqfv2~0~20/12/2023~20/12/2023~EQT" "AEMPO5769C" "304512"
+    // console.log(JSON.stringify(data.lines))
+    return scrapeResultPage(data)
+
+
+}
+
+
+const karvyCaptcha = async (PAN = ["AEMPO5769C"], company_id = "INOL~inox_indiapleqfv2~0~20/12/2023~20/12/2023~EQT") => {
 
     const processPandata = [];
 
     for (const Pan of PAN) {
-        const data = await processPan(page, Pan, company_id)
+        // const data = await processPan(page, Pan, company_id)
+        const data = await getPanData(Pan, company_id)
+
         processPandata.push(data)
     }
 
     console.log(processPandata)
-    await browser.close()
+
 }
 
 
 
-async function decodeCaptcha() {
+async function decodeCaptcha(img) {
 
     // Enhance the image before passing it to Tesseract
-    var enhancedImagePath = await enhanceImage('screenshot.png', 16);
+    var enhancedImagePath = await enhanceImage(img, 16);
     // var enhancedImagePath = await enhanceImage('screenshot.png', 16);
 
     enhancedImagePath = await enhanceImage(enhancedImagePath, 1 / 16);
@@ -179,9 +177,8 @@ async function decodeCaptcha() {
 
     const worker = await createWorker();
 
-    const ret = await worker.recognize('screenshot.png', 'eng');
+    const ret = await worker.recognize(enhancedImagePath, 'eng');
 
-    console.log(ret.data.text)
     // Extract digits from the recognized text
     const numbersOnly = ret.data.text.match(/\d+/g);
 
@@ -192,7 +189,12 @@ async function decodeCaptcha() {
 
     return captchaCode
 }
+
+
+
+
 import { XMLParser } from "fast-xml-parser"
+import { company } from './Models/IpoList.js';
 
 const parser = new XMLParser()
 
@@ -216,4 +218,29 @@ async function linkintime() {
     console.log(val)
 }
 
-linkintime()
+
+
+const getKarvyIpoList = async () => {
+    try {
+        const response = await axios.get('https://kprism.kfintech.com/ipostatus/');
+        const html = response.data;
+
+        const $ = cheerio.load(html);
+        const options = $('#ddl_ipo option')
+            .filter((index, element) => $(element).attr('value') !== undefined) // Check if the "value" attribute exists
+            .map((index, element) => `${$(element).text().trim()}--${$(element).val()}`)
+            .get();
+
+        return options;
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// Example usage
+karvyCaptcha()
+
+
+
+
+

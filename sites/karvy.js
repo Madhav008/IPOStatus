@@ -189,7 +189,7 @@ const karvyCaptcha = async (PAN, company_id = "INOL~inox_indiapleqfv2~0~20/12/20
         while (retryAttempts > 0) {
             data = await processPan(Pan, company_id);
 
-            if (data.Category.includes("Captcha is not valid")) {
+            if (data.Category && data.Category.includes("Captcha is not valid")) {
                 console.log(`Invalid captcha for PAN ${Pan}. Retrying (${retryAttempts} attempts left)`);
                 retryAttempts--;
             } else {
