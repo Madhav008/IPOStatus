@@ -33,8 +33,8 @@ app.use(express.static(publicDirectoryPath));
 app.use(morgan('dev'));
 // Middleware to handle timeouts
 app.use((req, res, next) => {
-  // Extend the timeout for all routes to 10 minutes
-  req.setTimeout(600000, () => {
+  // Extend the timeout for all routes to 1hr 
+  req.setTimeout((60*60*1000), () => {
     console.log('Request timed out');
     res.status(503).send('Service Unavailable');
   });
