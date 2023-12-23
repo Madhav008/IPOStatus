@@ -7,6 +7,8 @@ import userRoutes from './routes/userRoutes.js';
 import cors from 'cors';
 import morgan from 'morgan';
 import { logger } from "./logger.js"
+import ngrok from '@ngrok/ngrok'
+
 connectDB();
 const parser = new XMLParser();
 
@@ -41,16 +43,11 @@ app.use((req, res, next) => {
 });
 // Middleware to log response time
 app.use((req, res, next) => {
-  const startTime = new Date();
   res.on('finish', () => {
-    const endTime = new Date();
-    const responseTime = endTime - startTime;
     logger.info({
       method: req.method,
       url: req.originalUrl,
       status: res.statusCode,
-
-      responseTime: `${responseTime}ms`,
     });
   });
   next();
@@ -73,3 +70,6 @@ app.use('/cron', cronRoutes)
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+ngrok.connect({ addr: port, authtoken_from_env: true })
+  .then(listener => console.log(`Ingress established at: ${listener.url()}`));
