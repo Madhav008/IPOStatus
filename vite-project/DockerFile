@@ -9,8 +9,6 @@ COPY . .
 
 # Install the serve package globally
 RUN npm install -g serve
-
-ENV VITE_APP_BACKEND_URL=https://4188-203-115-68-29.ngrok-free.app
 # Expose the port that the app will run on
 EXPOSE 5125
 
