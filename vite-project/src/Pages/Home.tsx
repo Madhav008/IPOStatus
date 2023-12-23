@@ -68,7 +68,7 @@ const Home = () => {
 
         if (data.site === 'Karvy') {
             data.result.forEach((ele: any) => {
-                if (ele.Alloted && ele.Alloted !== 0) {
+                if (ele.Alloted && ele.Alloted != "0") {
                     SetAlloted((prevAlloted: any) => prevAlloted + 1);
                 } else {
                     SetNotAlloted((prevNotAlloted: any) => prevNotAlloted + 1)

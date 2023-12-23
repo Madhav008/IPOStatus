@@ -238,9 +238,38 @@ const getKarvyIpoList = async () => {
 }
 
 // Example usage
-karvyCaptcha()
+// karvyCaptcha()
 
 
 
+// Function that takes a callback
+function karvyCaptcha1(panList, clientId, callback) {
+    // Simulating an asynchronous operation
+    setTimeout(() => {
+        const result = {
+            processPandata: 'Processed PAN data',
+            failedPandata: 'Failed PAN data'
+        };
 
+        // Call the callback with the result
+        callback(null, result);
+    }, 1000); // Simulating a 1-second delay
+}
 
+// Callback function to handle the results
+function handleKarvyCaptchaResults(error, data) {
+    if (error) {
+        console.error('Error in karvyCaptcha:', error);
+    } else {
+        // Process the results here
+        console.log('Processed PAN data:', data.processPandata);
+        console.log('Failed PAN data:', data.failedPandata);
+
+        // Add more logic as needed
+    }
+}
+
+// Call karvyCaptcha with the callback every second
+setInterval(() => {
+    karvyCaptcha1(['pan1', 'pan2'], 'client123', handleKarvyCaptchaResults);
+}, 1000);

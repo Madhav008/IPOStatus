@@ -23,26 +23,31 @@ const getKarvyIpoList = async () => {
 }
 async function decodeCaptcha(img) {
 
-    // Enhance the image before passing it to Tesseract
-    var enhancedImagePath = await enhanceImage(img, 16);
-    // var enhancedImagePath = await enhanceImage('screenshot.png', 16);
+    try {
+        // Enhance the image before passing it to Tesseract
+        var enhancedImagePath = await enhanceImage(img, 16);
+        // var enhancedImagePath = await enhanceImage('screenshot.png', 16);
 
-    enhancedImagePath = await enhanceImage(enhancedImagePath, 1 / 16);
+        enhancedImagePath = await enhanceImage(enhancedImagePath, 1 / 16);
 
 
-    const worker = await createWorker();
+        const worker = await createWorker();
 
-    const ret = await worker.recognize(enhancedImagePath, 'eng');
+        const ret = await worker.recognize(enhancedImagePath, 'eng');
 
-    // Extract digits from the recognized text
-    const numbersOnly = ret.data.text.match(/\d+/g);
+        // Extract digits from the recognized text
+        const numbersOnly = ret.data.text.match(/\d+/g);
 
-    // Check if numbersOnly is not null or undefined before applying join
-    const captchaCode = numbersOnly ? numbersOnly.join('') : '';
+        // Check if numbersOnly is not null or undefined before applying join
+        const captchaCode = numbersOnly ? numbersOnly.join('') : '';
 
-    await worker.terminate();
+        await worker.terminate();
 
-    return captchaCode
+        return captchaCode
+    } catch (error) {
+        console.log("ERROR WHILE DECODING CAPTCHA")
+        return 0
+    }
 }
 
 async function enhanceImage(imagePath, scaleFactor = 4) {
@@ -70,7 +75,7 @@ async function enhanceImage(imagePath, scaleFactor = 4) {
         return imagePath;
     } catch (error) {
         console.error('Error enhancing image:', error);
-        return null;
+        return imagePath;
     }
 
 }
@@ -173,9 +178,14 @@ async function processPan(PAN, company_id) {
     let data;
     const capPng = await getCaptcha();
     let captchaCode = await decodeCaptcha(capPng);
-    data = await executeCmd(company_id, PAN, captchaCode);
-    data = scrapeResultPage(data)
-    return data;
+    if (captchaCode != 0) {
+        data = await executeCmd(company_id, PAN, captchaCode);
+        data = scrapeResultPage(data)
+        return data;
+    } else {
+        return null
+    }
+
 }
 
 const karvyCaptcha = async (PAN, company_id = "INOL~inox_indiapleqfv2~0~20/12/2023~20/12/2023~EQT") => {
@@ -189,7 +199,7 @@ const karvyCaptcha = async (PAN, company_id = "INOL~inox_indiapleqfv2~0~20/12/20
         while (retryAttempts > 0) {
             data = await processPan(Pan, company_id);
 
-            if (data.Category && data.Category.includes("Captcha is not valid")) {
+            if (data && data?.Category && data.Category.includes("Captcha is not valid")) {
                 console.log(`Invalid captcha for PAN ${Pan}. Retrying (${retryAttempts} attempts left)`);
                 retryAttempts--;
             } else {
