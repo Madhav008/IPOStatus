@@ -19,13 +19,21 @@ const start = asyncHandler(async (req, res) => {
 
     res.status(200).json({ message: 'Cron job started successfully.' });
 });
-
 const status = asyncHandler(async (req, res) => {
-    // Check if the cron job is running
-    const isRunning = cronJob && cronJob.getStatus().isRunning();
-    await updateDocuments();
-    res.status(200).json({ status: isRunning ? 'Running' : 'Not Running' });
+    try {
+        // Check if the cron job is running
+        const isRunning = cronJob ? cronJob.running : false;  // Adjust this based on your actual cron job object
+
+        // Assuming you have a method to update documents
+        await updateDocuments();
+
+        res.status(200).json({ status: isRunning ? 'Running' : 'Not Running' });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
 });
+
 
 const stop = asyncHandler(async (req, res) => {
     // Stop the cron job
