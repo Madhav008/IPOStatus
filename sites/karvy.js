@@ -173,11 +173,20 @@ const getCaptcha = async () => {
     }
 };
 
-
+let isCaptcha = false
+let captchaCode;
 async function processPan(PAN, company_id) {
     let data;
-    const capPng = await getCaptcha();
-    let captchaCode = await decodeCaptcha(capPng);
+    if (!isCaptcha) {
+        let capPng = await getCaptcha();
+        captchaCode = await decodeCaptcha(capPng);
+        isCaptcha = true
+        if (captchaCode.length != 6) {
+            isCaptcha = false;
+            return processPan(PAN, company_id)
+        }
+        console.log(captchaCode);
+    }
     if (captchaCode != 0) {
         data = await executeCmd(company_id, PAN, captchaCode);
         data = scrapeResultPage(data)
@@ -201,6 +210,7 @@ const karvyCaptcha = async (PAN, company_id = "INOL~inox_indiapleqfv2~0~20/12/20
 
             if (data && data?.Category && data.Category.includes("Captcha is not valid")) {
                 console.log(`Invalid captcha for PAN ${Pan}. Retrying (${retryAttempts} attempts left)`);
+                isCaptcha = false;
                 retryAttempts--;
             } else {
                 break; // Break out of the retry loop if captcha is valid
