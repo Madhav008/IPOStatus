@@ -1,4 +1,4 @@
-
+import { User } from '../Models/userModel.js';
 import asyncHandler from 'express-async-handler'
 import path from 'path';
 import fs from 'fs'
@@ -141,6 +141,8 @@ const getUploadedFileData = asyncHandler(async (req, res) => {
     var pan_list = [];
     var panData = [];
     const id = uuidv4()
+    const user = await getUser(req);
+    let count = user.count;
     for (let rowNum = range.s.r + 1; rowNum <= range.e.r; rowNum++) {
         const cellAddress = { c: panColumnIndex, r: rowNum };
         const cellRef = xlsx.utils.encode_cell(cellAddress);
@@ -163,8 +165,6 @@ const getUploadedFileData = asyncHandler(async (req, res) => {
                 DPCLITID: ipo.DPCLITID,
                 ORDER_NO: ipo.ORDER_NO,
                 BOOK_ID: ipo.BOOK_ID,
-                BRANCH: ipo.BRANCH,
-                USR_ID: ipo.USR_ID,
                 SHARES: ipo.SHARES,
                 AMOUNT: ipo.AMOUNT,
                 ALLOT: ipo.ALLOT,
@@ -173,6 +173,7 @@ const getUploadedFileData = asyncHandler(async (req, res) => {
             }
 
             panData.push(cleaned_data);
+            count--;
         } else {
             panData.push({ PANGIR1: pan, REASON: 'No record found' });
         }
@@ -185,7 +186,7 @@ const getUploadedFileData = asyncHandler(async (req, res) => {
     xlsx.utils.book_append_sheet(wb, ws, 'IpoStatus');
 
     xlsx.writeFile(wb, `./uploads/excel_${id}.xlsx`);
-
+    await updateUser(req, count)
     res.status(200).json({ success: `/download/excel_${id}.xlsx`, result: panData });
 
 
@@ -198,7 +199,54 @@ export {
 }
 
 
+import jwt from 'jsonwebtoken'
 
+async function getUser(req) {
+    let token;
+    if (
+        req.headers.authorization &&
+        req.headers.authorization.startsWith('Bearer')
+    ) {
+        try {
+            token = req.headers.authorization.split(' ')[1]
+            const decoded = jwt.verify(token, process.env.JWT_SECRET)
+            const database = await User.findById(decoded.id).select('-password')
+            return database
+        } catch (error) {
+            console.error(error)
+        }
+    }
+}
+
+async function updateUser(req, count) {
+    let token;
+
+    if (
+        req.headers.authorization &&
+        req.headers.authorization.startsWith('Bearer')
+    ) {
+        try {
+            token = req.headers.authorization.split(' ')[1];
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+            // Use findByIdAndUpdate to update the user count
+            const updatedUser = await User.findByIdAndUpdate(
+                decoded.id,
+                { $set: { count: count } },
+                { new: true } // This option returns the updated document
+            ).select('-password');
+
+            // Check if the user was found and updated
+            if (updatedUser) {
+                console.log('User count updated:', updatedUser);
+            } else {
+                console.log('User not found');
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+}
 
 function isColumnMatch(cellValue, columnNameUpperCase, colNum) {
     const cellValueUpperCase = cellValue?.trim().toUpperCase();

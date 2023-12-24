@@ -101,6 +101,10 @@ const scrapeResultPage = (resp) => {
     const data = getIPOAllotment(resp)
     if (msg == "ShowMessage function not found.") {
         return data;
+    } else if (msg.toLowerCase().includes("captcha")) {
+        return { Category: "Captcha is not valid" };
+    } else if (msg.includes("PAN details  not available.")) {
+        return { Category: "PAN details  not available." };
     } else {
         return msg;
     }
@@ -112,7 +116,7 @@ import { exec, execSync } from 'child_process';
 const executeCmd = async (company_id, pan, captcha) => {
     // console.log(`bash karvy.sh ${company_id} ${pan} ${captcha}`)
     return new Promise((resolve, reject) => {
-        exec(`bash karvy.sh ${company_id} ${pan} ${captcha}`, (error, stdout, stderr) => {
+        exec(`bash sites/karvy.sh ${company_id} ${pan} ${captcha}`, (error, stdout, stderr) => {
             if (error) {
                 reject(error);
             } else {
@@ -124,32 +128,151 @@ const executeCmd = async (company_id, pan, captcha) => {
 
 const getCaptcha = async () => {
     try {
-        const result = execSync('bash captcha.sh', { encoding: 'utf-8' });
+        const result = execSync('bash sites/captcha.sh', { encoding: 'utf-8' });
         return result.trim();
     } catch (error) {
         console.error('Error:', error.message);
     }
 };
+let isCaptcha = false
+let captchaCode;
 async function getPanData(PAN, company_id) {
+    if (!isCaptcha) {
+        let capPng = await getCaptcha();
+        captchaCode = await decodeCaptcha(capPng);
+        isCaptcha = true
+        if (captchaCode.length != 6) {
+            isCaptcha = false;
+            return getPanData(PAN, company_id)
+        }
+        console.log(captchaCode);
+    }
 
-    const capPng = await getCaptcha()
 
-    console.log(capPng)
-    // Create the worker outside the inner function
-    const captchaCode = await decodeCaptcha(capPng)
-
-    console.log(captchaCode);
-
-    const data = await executeCmd(company_id, PAN, captchaCode)
+    let data = await executeCmd(company_id, PAN, captchaCode)
     // $ bash karvy.sh "INOL~inox_indiapleqfv2~0~20/12/2023~20/12/2023~EQT" "AEMPO5769C" "304512"
     // console.log(JSON.stringify(data.lines))
-    return scrapeResultPage(data)
+    data = scrapeResultPage(data)
 
+    console.log(data)
+    if (data.Category.includes('Captcha')) {
+        isCaptcha = false;
+        return getPanData(PAN, company_id)
+    }
+    return data
 
 }
 
 
-const karvyCaptcha = async (PAN = ["AEMPO5769C"], company_id = "INOL~inox_indiapleqfv2~0~20/12/2023~20/12/2023~EQT") => {
+const karvyCaptcha = async (PAN = ["AEMPO5769C", "JJRPK7016R",
+    "JJRPK7016R",
+    "JJRPK7016R",
+    "JJRPK9850B",
+    "JJRPK9850B",
+    "JJRPS5470P",
+    "JJRPS5470P",
+    "JJSPS1407M",
+    "JJSPS1407M",
+    "JJSPS4504P",
+    "JJSPS4504P",
+    "JJSPS4504P",
+    "JJSPS4504P",
+    "JJSPS4504P",
+    "JJTPK2375B",
+    "JJTPK2375B",
+    "JJTPK4799H",
+    "JJTPK4799H",
+    "JJTPK4799H",
+    "JJTPK9335P",
+    "JJTPK9335P",
+    "JJTPS6671A",
+    "JJTPS6671A",
+    "JJTPS6703R",
+    "JJTPS6703R",
+    "JJTPS6703R",
+    "JJTPS7283C",
+    "JJTPS7283C",
+    "JJUPS2764H",
+    "JJUPS2764H",
+    "JJUPS4814N",
+    "JJUPS4814N",
+    "JJUPS5946B",
+    "JJUPS5946B",
+    "JJUPS5946B",
+    "JJUPS6121L",
+    "JJUPS6121L",
+    "JJVPK5015A",
+    "JJVPK5015A",
+    "JJVPS2972G",
+    "JJVPS2972G",
+    "JJVPS4752L",
+    "JJVPS4752L",
+    "JJVPS4940G",
+    "JJVPS4940G",
+    "JJVPS5369P",
+    "JJVPS5369P",
+    "JJVPS6835N",
+    "JJVPS6835N",
+    "JJVPS8620B",
+    "JJVPS8620B",
+    "JJWPK3611R",
+    "JJWPK3611R",
+    "JJWPS2212A",
+    "JJWPS2212A",
+    "JJWPS2308H",
+    "JJWPS2308H",
+    "JJWPS7554H",
+    "JJWPS7554H",
+    "JJWPS8827M",
+    "JJWPS8827M",
+    "JJWPS9989A",
+    "JJWPS9989A",
+    "JJXPK2619Q",
+    "JJXPK2619Q",
+    "JJXPK5670K",
+    "JJXPK5670K",
+    "JJXPK8240K",
+    "JJXPK8240K",
+    "JJXPK8497L",
+    "JJXPK8497L",
+    "JJXPS0320A",
+    "JJXPS0320A",
+    "JJXPS1524N",
+    "JJXPS1524N",
+    "JJXPS3719F",
+    "JJXPS3719F",
+    "JJXPS4980L",
+    "JJXPS4980L",
+    "JJYPK2126M",
+    "JJYPK2126M",
+    "JJYPS4926K",
+    "JJYPS4926K",
+    "JJYPS5753J",
+    "JJYPS5753J",
+    "JJYPS6375G",
+    "JJYPS6375G",
+    "JJYPS6375G",
+    "JJYPS6375G",
+    "JJYPS7058L",
+    "JJYPS7058L",
+    "JJYPS7098C",
+    "JJYPS7098C",
+    "JJYPS8441D",
+    "JJYPS8441D",
+    "JJYPS8634C",
+    "JJYPS8634C",
+    "JJYPS8634C",
+    "JJYPS8634C",
+    "JJZPK5471G",
+    "JJZPK5471G",
+    "JJZPK5656R",
+    "JJZPK5656R",
+    "JJZPK6352Q",
+    "JJZPK6352Q",
+    "JJZPK6434F",
+    "JJZPK6434F",
+    "JJZPK6464B",
+    "JJZPK6464B",], company_id = "INOL~inox_indiapleqfv2~0~20/12/2023~20/12/2023~EQT") => {
 
     const processPandata = [];
 
@@ -238,7 +361,7 @@ const getKarvyIpoList = async () => {
 }
 
 // Example usage
-// karvyCaptcha()
+karvyCaptcha()
 
 
 
@@ -270,6 +393,189 @@ function handleKarvyCaptchaResults(error, data) {
 }
 
 // Call karvyCaptcha with the callback every second
-setInterval(() => {
-    karvyCaptcha1(['pan1', 'pan2'], 'client123', handleKarvyCaptchaResults);
-}, 1000);
+// setInterval(() => {
+//     karvyCaptcha1(['pan1', 'pan2'], 'client123', handleKarvyCaptchaResults);
+// }, 1000);
+
+
+
+async function getIPOStatus(Pan) {
+    try {
+        let data = JSON.stringify({
+            "ipoId": 70,
+            "panNumber": Pan,
+            "reload": false
+        });
+
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: 'https://api.trynarada.com/get-allotment-status/',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: data
+        };
+
+        axios.request(config)
+            .then((response) => {
+                console.log(JSON.stringify(response.data));
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    } catch (error) {
+        co, nsole.error('Error:', error);
+    }
+}
+// Functio,n that takes a callback
+async function karvyCaptchaApi() {
+    let panlist = [
+        "JJRPK7016R",
+        "JJRPK7016R",
+        "JJRPK9850B",
+        "JJRPK9850B",
+        "JJRPS5470P",
+        "JJRPS5470P",
+        "JJSPS1407M",
+        "JJSPS1407M",
+        "JJSPS4504P",
+        "JJSPS4504P",
+        "JJSPS4504P",
+        "JJSPS4504P",
+        "JJSPS4504P",
+        "JJTPK2375B",
+        "JJTPK2375B",
+        "JJTPK4799H",
+        "JJTPK4799H",
+        "JJTPK4799H",
+        "JJTPK9335P",
+        "JJTPK9335P",
+        "JJTPS6671A",
+        "JJTPS6671A",
+        "JJTPS6703R",
+        "JJTPS6703R",
+        "JJTPS6703R",
+        "JJTPS7283C",
+        "JJTPS7283C",
+        "JJUPS2764H",
+        "JJUPS2764H",
+        "JJUPS4814N",
+        "JJUPS4814N",
+        "JJUPS5946B",
+        "JJUPS5946B",
+        "JJUPS5946B",
+        "JJUPS6121L",
+        "JJUPS6121L",
+        "JJVPK5015A",
+        "JJVPK5015A",
+        "JJVPS2972G",
+        "JJVPS2972G",
+        "JJVPS4752L",
+        "JJVPS4752L",
+        "JJVPS4940G",
+        "JJVPS4940G",
+        "JJVPS5369P",
+        "JJVPS5369P",
+        "JJVPS6835N",
+        "JJVPS6835N",
+        "JJVPS8620B",
+        "JJVPS8620B",
+        "JJWPK3611R",
+        "JJWPK3611R",
+        "JJWPS2212A",
+        "JJWPS2212A",
+        "JJWPS2308H",
+        "JJWPS2308H",
+        "JJWPS7554H",
+        "JJWPS7554H",
+        "JJWPS8827M",
+        "JJWPS8827M",
+        "JJWPS9989A",
+        "JJWPS9989A",
+        "JJXPK2619Q",
+        "JJXPK2619Q",
+        "JJXPK5670K",
+        "JJXPK5670K",
+        "JJXPK8240K",
+        "JJXPK8240K",
+        "JJXPK8497L",
+        "JJXPK8497L",
+        "JJXPS0320A",
+        "JJXPS0320A",
+        "JJXPS1524N",
+        "JJXPS1524N",
+        "JJXPS3719F",
+        "JJXPS3719F",
+        "JJXPS4980L",
+        "JJXPS4980L",
+        "JJYPK2126M",
+        "JJYPK2126M",
+        "JJYPS4926K",
+        "JJYPS4926K",
+        "JJYPS5753J",
+        "JJYPS5753J",
+        "JJYPS6375G",
+        "JJYPS6375G",
+        "JJYPS6375G",
+        "JJYPS6375G",
+        "JJYPS7058L",
+        "JJYPS7058L",
+        "JJYPS7098C",
+        "JJYPS7098C",
+        "JJYPS8441D",
+        "JJYPS8441D",
+        "JJYPS8634C",
+        "JJYPS8634C",
+        "JJYPS8634C",
+        "JJYPS8634C",
+        "JJZPK5471G",
+        "JJZPK5471G",
+        "JJZPK5656R",
+        "JJZPK5656R",
+        "JJZPK6352Q",
+        "JJZPK6352Q",
+        "JJZPK6434F",
+        "JJZPK6434F",
+        "JJZPK6464B",
+        "JJZPK6464B",
+        "JJZPK6671J",
+        "JJZPK6671J",
+        "JJZPS1820P",
+        "JJZPS1820P",
+        "JJZPS3205J",
+        "JJZPS3205J",
+        "JKAPK2486P",
+        "JKAPK2486P",
+        "JKAPK2609Q",
+        "JKAPK2609Q",
+        "JKAPK6027A",
+        "JKAPK6027A",
+        "JKAPK8030D",
+        "JKAPK8030D",
+        "JKAPK8030D",
+        "JKAPK8030D",
+        "JKAPK9140L",
+        "JKAPK9140L",
+        "JKAPS0643N",
+        "JKAPS0643N",
+        "JKAPS2201A",
+        "JKAPS2201A",
+        "JKAPS9642M",
+        "JKAPS9642M",
+        "JKAPS9689Q",
+        "JKAPS9689Q",
+        "JKAPS9740A",
+
+
+    ]
+
+
+    for (const panNumber of panlist) {
+        var pan = panNumber
+
+        await getIPOStatus(pan);
+
+    }
+}
+// karvyCaptchaApi()
