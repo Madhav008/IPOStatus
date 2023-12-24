@@ -28,31 +28,48 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
     const [lloading, setLoading] = useState(false);
     const [data, setData] = useState<any | null>(null);
 
-
-    useEffect(() => {
-        // Use dynamic URL based on the selected site
+    async function getStreamData(formdata: any) {
         const sseUrl = `${baseURL}/api/${selectedSite}`;
-      
-        const sse = new EventSource(sseUrl, { withCredentials: true });
-      
-        function getRealtimeData(data: any) {
-          console.log(data);
+
+        try {
+            const response = await fetch(sseUrl, {
+                method: 'POST',
+                body: formdata,
+            });
+
+            if (response.ok) {
+                const reader = response?.body?.getReader();
+
+                while (true) {
+                    try {
+                        const { done, value } = await reader?.read();
+
+                        if (done) {
+                            console.log('SSE stream closed');
+                            break;
+                        }
+                        const textData = new TextDecoder().decode(value);
+
+                        console.log(JSON.parse(textData));
+                        // Handle the received data as needed
+                    } catch (error) {
+                        console.error('Error reading SSE stream:', error);
+                        break;
+                    }
+                }
+
+                // Cleanup: Close the SSE connection when the component unmounts
+                return () => {
+                    reader?.cancel();
+                };
+            } else {
+                console.error('Failed to establish SSE connection. Server returned:', response.status, response.statusText);
+            }
+        } catch (error) {
+            console.error('Error making POST request:', error);
         }
-      
-        sse.onmessage = (e) => getRealtimeData(JSON.parse(e.data));
-      
-        sse.onerror = () => {
-          // Proper error handling, close the connection and notify the user
-          console.error('Error with SSE. Closing connection.');
-          sse.close();
-        };
-      
-        return () => {
-          // Cleanup: close the SSE connection
-          sse.close();
-        };
-      }, [lloading, selectedSite]);
-      
+    }
+
 
 
     const handleDownload = async () => {
@@ -92,16 +109,18 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
             const formdata = new FormData();
             formdata.append('file', file);
             formdata.append('clientId', iponame);
-            const response = await ipoStatusApi.getIpoData(url, formdata);
+            await getStreamData(formdata)
+            // const response = await ipoStatusApi.getIpoData(url, formdata);
 
 
-            if (response.status != 200) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
+            // if (response.status != 200) {
+            //     throw new Error(`HTTP error! Status: ${response.status}`);
+            // }
 
-            const result = await response.data;
+
+            // const result = await response.data;
             setLoading(false);
-            return result;
+            return null;
         } catch (error) {
             setLoading(false);
             console.error('Error:', error);

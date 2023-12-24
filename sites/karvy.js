@@ -207,13 +207,14 @@ const karvyCaptcha = async (PAN, company_id = "INOL~inox_indiapleqfv2~0~20/12/20
             }
         }
 
-        if (data.Category.includes("Captcha is not valid")) {
+        if (data && data.Category && data.Category.includes("Captcha is not valid")) {
             failedPandata.push({ ...data, PAN: Pan });
-        } else if (data.Category.includes("PAN details not available.")) {
+        } else if (data && data.Category && data.Category.includes("PAN details not available.")) {
             processPandata.push({ ...data, PAN: Pan });
         } else {
             processPandata.push({ ...data, PAN: Pan });
         }
+        
 
         // Check if the batchSize is reached and invoke the callback
         if (processPandata.length % batchSize === 0) {
