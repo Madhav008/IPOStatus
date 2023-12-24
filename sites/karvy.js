@@ -188,7 +188,7 @@ async function processPan(PAN, company_id) {
 
 }
 
-const karvyCaptcha = async (PAN, company_id = "INOL~inox_indiapleqfv2~0~20/12/2023~20/12/2023~EQT") => {
+const karvyCaptcha = async (PAN, company_id = "INOL~inox_indiapleqfv2~0~20/12/2023~20/12/2023~EQT", callback, batchSize = 10) => {
     const processPandata = [];
     const failedPandata = [];
 
@@ -214,6 +214,13 @@ const karvyCaptcha = async (PAN, company_id = "INOL~inox_indiapleqfv2~0~20/12/20
         } else {
             processPandata.push({ ...data, PAN: Pan });
         }
+
+        // Check if the batchSize is reached and invoke the callback
+        if (processPandata.length % batchSize === 0) {
+            if (typeof callback === 'function') {
+                callback({ processPandata, failedPandata });
+            }
+        }
     }
 
     failedPandata.forEach(element => {
@@ -222,6 +229,7 @@ const karvyCaptcha = async (PAN, company_id = "INOL~inox_indiapleqfv2~0~20/12/20
 
     return { processPandata, failedPandata };
 };
+
 
 
 

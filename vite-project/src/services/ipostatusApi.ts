@@ -60,7 +60,4 @@ export const ipoStatusApi = {
     getProfile: <T>(): Promise<any> => makeRequest<T>(apiEndpoints.getProfile),
     getFolders: <T>(): Promise<any> => makeRequest<T>(apiEndpoints.getFolders),
     getExcelResult: <T>(requestData: any): Promise<any> => makeRequest<T>(apiEndpoints.getExcelResult, 'POST', requestData),
-
-
-
 };

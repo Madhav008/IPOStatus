@@ -242,18 +242,29 @@ const getKarvyIpoList = async () => {
 
 
 
-// Function that takes a callback
-function karvyCaptcha1(panList, clientId, callback) {
-    // Simulating an asynchronous operation
-    setTimeout(() => {
-        const result = {
-            processPandata: 'Processed PAN data',
-            failedPandata: 'Failed PAN data'
-        };
 
-        // Call the callback with the result
-        callback(null, result);
-    }, 1000); // Simulating a 1-second delay
+function karvyCaptcha1(panList, clientId, callback) {
+    let index = 0;
+
+    const intervalId = setInterval(() => {
+        if (index < panList.length) {
+            const pan = panList[index];
+
+            // Simulating an asynchronous operation
+            const result = {
+                processPandata: 'Processed PAN data',
+                failedPandata: 'Failed PAN data'
+            };
+
+            // Call the callback with the result
+            callback(null, result);
+
+            index++;
+        } else {
+            // Stop the interval when all PANs are processed
+            clearInterval(intervalId);
+        }
+    }, 5000);
 }
 
 // Callback function to handle the results
@@ -269,7 +280,7 @@ function handleKarvyCaptchaResults(error, data) {
     }
 }
 
-// Call karvyCaptcha with the callback every second
-setInterval(() => {
-    karvyCaptcha1(['pan1', 'pan2'], 'client123', handleKarvyCaptchaResults);
-}, 1000);
+// Call karvyCaptcha with the callback
+karvyCaptcha1(['pan1', 'pan2'], 'client123', handleKarvyCaptchaResults);
+
+

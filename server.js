@@ -45,6 +45,25 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get('/stream-json', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+
+  // Send JSON data every second
+  const intervalId = setInterval(() => {
+    const jsonData = { time: new Date().toLocaleTimeString(), value: Math.random() };
+    res.write(`data: ${JSON.stringify(jsonData)}\n\n`);
+  }, 1000);
+
+  // Close the connection after 10 seconds
+  setTimeout(() => {
+    clearInterval(intervalId);
+    res.end();
+  }, 10000);
+});
+
+
 app.use('/api/users', userRoutes);
 
 import siteRoutes from './routes/sitesRoutes.js';

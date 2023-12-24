@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import toast from 'react-hot-toast';
 import { ipoStatusApi } from '@/services/ipostatusApi';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+
 
 interface IpoList {
     company_id: string;
@@ -26,6 +27,33 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
     const [file, setFile] = useState<File | null>(null);
     const [lloading, setLoading] = useState(false);
     const [data, setData] = useState<any | null>(null);
+
+
+    useEffect(() => {
+        // Use dynamic URL based on the selected site
+        const sseUrl = `${baseURL}/api/${selectedSite}`;
+      
+        const sse = new EventSource(sseUrl, { withCredentials: true });
+      
+        function getRealtimeData(data: any) {
+          console.log(data);
+        }
+      
+        sse.onmessage = (e) => getRealtimeData(JSON.parse(e.data));
+      
+        sse.onerror = () => {
+          // Proper error handling, close the connection and notify the user
+          console.error('Error with SSE. Closing connection.');
+          sse.close();
+        };
+      
+        return () => {
+          // Cleanup: close the SSE connection
+          sse.close();
+        };
+      }, [lloading, selectedSite]);
+      
+
 
     const handleDownload = async () => {
         try {

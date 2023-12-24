@@ -103,6 +103,10 @@ const getIpoList = asyncHandler(async (req, res) => {
 
 
 const getKarvyData = asyncHandler(async (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
     try {
         const { clientId } = req.body;
 
@@ -139,19 +143,35 @@ const getKarvyData = asyncHandler(async (req, res) => {
                 pan_list.push(pan.toUpperCase())
             }
         }
-        const { processPandata: ipo, failedPandata } = await karvyCaptcha(pan_list, clientId);
 
-        // Convert JSON data to worksheet
-        const filteredIpo = ipo.filter(item => item !== undefined);
-        const ws = xlsx.utils.json_to_sheet(filteredIpo);
-        // Create a workbook and add the worksheet
-        const wb = xlsx.utils.book_new();
-        xlsx.utils.book_append_sheet(wb, ws, 'IpoStatus');
-        // Write the workbook to a file
-        xlsx.writeFile(wb, `./uploads/KarvyIpoStatus_${id}.xlsx`);
-        // Check if there are failed PANs before creating a workbook and writing to a file
 
-        res.status(200).json({ success: `/download/KarvyIpoStatus_${id}.xlsx`, result: ipo, failed_data: failedPandata });
+        karvyCaptcha(pan_list, clientId, handleKarvyCaptchaBatchResults, 1);
+
+
+        // Callback function to handle the results
+        function handleKarvyCaptchaBatchResults({ processPandata, failedPandata }) {
+
+            const ipo = processPandata
+            // Convert JSON data to worksheet
+            const filteredIpo = ipo.filter(item => item !== undefined);
+            const ws = xlsx.utils.json_to_sheet(filteredIpo);
+            // Create a workbook and add the worksheet
+            const wb = xlsx.utils.book_new();
+            xlsx.utils.book_append_sheet(wb, ws, 'IpoStatus');
+            // Write the workbook to a file
+            xlsx.writeFile(wb, `./uploads/KarvyIpoStatus_${id}.xlsx`);
+            // // Check if there are failed PANs before creating a workbook and writing to a file
+            res.write(`data: ${JSON.stringify({ success: `/download/KarvyIpoStatus_${id}.xlsx`, result: ipo, failed_data: failedPandata })}\n\n`);
+
+
+            // res.status(200).json({ success: `/download/KarvyIpoStatus_${id}.xlsx`, result: ipo, failed_data: batchResults.failedPandata });
+
+            if (ipo.length + failedPandata.length === pan_list.length) {
+                res.end()
+            }
+
+        }
+
 
     } catch (error) {
         console.error('Error:', error);
@@ -318,6 +338,9 @@ export {
     downloadFile,
     getIpoList
 }
+
+
+
 
 
 
