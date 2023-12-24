@@ -2,12 +2,12 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ProtectedRoutes from './components/ProtectedRoute';
 import AuthPage from './Pages/AuthPage';
 import { Toaster } from 'react-hot-toast';
-import SidebarPage from './Pages/SidebarPage';
 import { useEffect } from 'react';
 import { ipoStatusApi } from './services/ipostatusApi';
 import { useDispatch } from 'react-redux';
 import { setUser } from './store/authSlice';
-import AccountSidebarPage from './Pages/AccountSidebar';
+import AccountPage from './Pages/AccountPage';
+import Home from './Pages/Home';
 
 function App() {
 
@@ -28,8 +28,8 @@ function App() {
         <Routes>
           <Route path="/" element={<AuthPage />} />
           <Route element={<ProtectedRoutes />}>
-            <Route path='/home' element={<SidebarPage />} />
-            <Route path='/account' element={<AccountSidebarPage />} />
+            <Route path='/home' element={<Home/>} />
+            <Route path='/account' element={<AccountPage />} />
           </Route>
         </Routes>
       </Router>

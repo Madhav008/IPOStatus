@@ -18,6 +18,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import toast from 'react-hot-toast';
 import { ipoStatusApi } from '@/services/ipostatusApi';
+import SidebarPage from '@/components/SidebarPage';
 
 interface AccountPageProps { }
 
@@ -143,99 +144,101 @@ const AccountPage: React.FC<AccountPageProps> = () => {
     }
 
     return (
-        <div className="flex items-center justify-between ">
-            <div className="space-y-6  w-[100%] ">
-                <div>
-                    <h3 className="text-lg font-medium">Premium </h3>
-                    <p className="text-sm text-muted-foreground">
-                        Upload the Excel.
-                    </p>
-                </div>
-                <Separator />
-                <div>
-                    <Label className='text-md mb-2'>Choose the site</Label>
-                    <Select value={company} name='company' onValueChange={(val) => { setCompany(val); }}>
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select The Site" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectGroup>
-                                {folders.map((item) => (
-                                    <SelectItem key={item} value={item}>
-                                        {item}
-                                    </SelectItem>
-                                ))}
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
+        <SidebarPage>
+            <div className="flex items-center justify-between ">
+                <div className="space-y-6  w-[100%] ">
+                    <div>
+                        <h3 className="text-lg font-medium">Premium </h3>
+                        <p className="text-sm text-muted-foreground">
+                            Upload the Excel.
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <Label className='text-md mb-2'>Choose the site</Label>
+                        <Select value={company} name='company' onValueChange={(val) => { setCompany(val); }}>
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select The Site" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup>
+                                    {folders.map((item) => (
+                                        <SelectItem key={item} value={item}>
+                                            {item}
+                                        </SelectItem>
+                                    ))}
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
 
-                </div>
-                <div>
-                    <Label className='mx-1 my-6 text-md '>Upload the File Here</Label>
-                    <input ref={fileInputRef}
-                        hidden name='file' id="picture" type="file" className=' flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm  ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-white placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50' onChange={handleFile} />
+                    </div>
+                    <div>
+                        <Label className='mx-1 my-6 text-md '>Upload the File Here</Label>
+                        <input ref={fileInputRef}
+                            hidden name='file' id="picture" type="file" className=' flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm  ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-white placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50' onChange={handleFile} />
 
+                    </div>
+                    <Button onClick={handleSubmit} className={`bg-secondary w-full text-primary-content ${lloading ? 'opacity-50 cursor-not-allowed' : ''} `} disabled={lloading}>
+                        Submit
+                    </Button>
+                    {data !== null && (
+                        <>
+                            <Separator />
+                            <Label>
+                                <span className="font-bold text-xl ">
+                                    Generated Reports
+                                </span>
+                            </Label>
+                            <Button onClick={handleDownload} className="bg-white w-max m-6">Download Excel</Button>
+                        </>
+                    )}
                 </div>
-                <Button onClick={handleSubmit} className={`bg-secondary w-full text-primary-content ${lloading ? 'opacity-50 cursor-not-allowed' : ''} `} disabled={lloading}>
-                    Submit
-                </Button>
-                {data !== null && (
-                    <>
-                        <Separator />
-                        <Label>
-                            <span className="font-bold text-xl ">
-                                Generated Reports
-                            </span>
-                        </Label>
-                        <Button onClick={handleDownload} className="bg-white w-max m-6">Download Excel</Button>
-                    </>
-                )}
+                <div className=" flex flex-wrap ml-[200px] gap-2">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center text-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium w-[100px]">
+                                Total PAN Processed
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-center">{Proccessed}</div>
+                        </CardContent>
+                    </Card>
+
+
+                    <Card>
+                        <CardHeader className="flex flex-row items-center text-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium w-[100px]">
+                                Error in Processing
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-center">{0}</div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center text-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium w-[100px]">
+                                Alloted
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-center">{Alloted}</div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center text-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium w-[100px]">
+                                Not Alloted
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-center">{NotAlloted}</div>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
-            <div className=" flex flex-wrap ml-[200px] gap-2">
-                <Card>
-                    <CardHeader className="flex flex-row items-center text-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium w-[100px]">
-                            Total PAN Processed
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-center">{Proccessed}</div>
-                    </CardContent>
-                </Card>
-
-
-                <Card>
-                    <CardHeader className="flex flex-row items-center text-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium w-[100px]">
-                            Error in Processing
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-center">{0}</div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center text-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium w-[100px]">
-                            Alloted
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-center">{Alloted}</div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center text-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium w-[100px]">
-                            Not Alloted
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-center">{NotAlloted}</div>
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
+        </SidebarPage>
     )
 }
 

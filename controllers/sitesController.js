@@ -8,6 +8,7 @@ import { company } from '../Models/IpoList.js';
 import asyncHandler from 'express-async-handler'
 import path from 'path';
 import { logger } from '../logger.js'
+import { User } from '../Models/userModel.js';
 const publicDirectoryPath = path.join('uploads');
 
 
@@ -131,6 +132,8 @@ const getKarvyData = asyncHandler(async (req, res) => {
 
         var pan_list = [];
         const id = uuidv4()
+        const user = await getUser(req);
+        let count = user.count;
         for (let rowNum = range.s.r + 1; rowNum <= range.e.r; rowNum++) {
             const cellAddress = { c: panColumnIndex, r: rowNum };
             const cellRef = xlsx.utils.encode_cell(cellAddress);
@@ -141,6 +144,7 @@ const getKarvyData = asyncHandler(async (req, res) => {
         }
         const { processPandata: ipo, failedPandata } = await karvyCaptcha(pan_list, clientId);
 
+        count = count - (ipo.length - failedPandata.length)
         // Convert JSON data to worksheet
         const filteredIpo = ipo.filter(item => item !== undefined);
         const ws = xlsx.utils.json_to_sheet(filteredIpo);
@@ -150,7 +154,7 @@ const getKarvyData = asyncHandler(async (req, res) => {
         // Write the workbook to a file
         xlsx.writeFile(wb, `./uploads/KarvyIpoStatus_${id}.xlsx`);
         // Check if there are failed PANs before creating a workbook and writing to a file
-
+        await updateUser(req, count)
         res.status(200).json({ success: `/download/KarvyIpoStatus_${id}.xlsx`, result: ipo, failed_data: failedPandata });
 
     } catch (error) {
@@ -188,6 +192,8 @@ const getbigshareData = asyncHandler(async (req, res) => {
         const range = xlsx.utils.decode_range(sheet['!ref']);
         const panList = [];
         const id = uuidv4()
+        const user = await getUser(req);
+        let count = user.count;
         for (let rowNum = range.s.r + 1; rowNum <= range.e.r; rowNum++) {
             const cellAddress = { c: panColumnIndex, r: rowNum };
             const cellRef = xlsx.utils.encode_cell(cellAddress);
@@ -199,20 +205,22 @@ const getbigshareData = asyncHandler(async (req, res) => {
         const ipo = await bigshare(panList, clientId);
         const failed_data = ipo.failedPans
         const data = ipo.ipoStatusList
+        count = count - data.length
         // Convert JSON data to worksheet
         const ws = xlsx.utils.json_to_sheet(data);
         // Create a workbook and add the worksheet
         const wb = xlsx.utils.book_new();
         xlsx.utils.book_append_sheet(wb, ws, 'IpoStatus');
         // Write the workbook to a file
-        xlsx.writeFile(wb, `./uploads/IpoStatus_${id}.xlsx`);
+        xlsx.writeFile(wb, `./uploads/BigShareIpoStatus_${id}.xlsx`);
         // Check if there are failed PANs before creating a workbook and writing to a file
         if (failed_data.length > 0) {
             failed_data.forEach((e) => {
                 data.push({ PAN: e, Status: 'Failed' })
             })
         }
-        res.status(200).json({ success: `/download/IpoStatus_${id}.xlsx`, result: data, failed_data: failed_data });
+        await updateUser(req, count)
+        res.status(200).json({ success: `/download/BigShareIpoStatus_${id}.xlsx`, result: data, failed_data: failed_data });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ error: 'Internal Server Error' });
@@ -248,6 +256,8 @@ const getlinkintimeData = asyncHandler(async (req, res) => {
     const panList = [];
     const failedPans = [];
     const id = uuidv4()
+    const user = await getUser(req);
+    let count = user.count;
     for (let rowNum = range.s.r + 1; rowNum <= range.e.r; rowNum++) {
         const cellAddress = { c: panColumnIndex, r: rowNum };
         const cellRef = xlsx.utils.encode_cell(cellAddress);
@@ -269,6 +279,7 @@ const getlinkintimeData = asyncHandler(async (req, res) => {
                                 panList.push({ Pan: pan, Qty: "Enter the Valid Pan!!" });
                             } else {
                                 panList.push({ Pan: pan, Qty: "No Record Found!!" });
+                                count--;
                             }
 
                         } else {
@@ -280,7 +291,7 @@ const getlinkintimeData = asyncHandler(async (req, res) => {
                                 Security_Applied: jObj.NewDataSet.Table?.SHARES,
                                 Category: jObj.NewDataSet.Table?.PEMNDG,
                             }
-
+                            count--;
                             panList.push(result);
                         }
                     } else {
@@ -300,11 +311,12 @@ const getlinkintimeData = asyncHandler(async (req, res) => {
             }
         }
     }
+    await updateUser(req, count)
     // Create a new workbook and worksheet for successful PANs
     const resultWorkbook = xlsx.utils.book_new();
     const resultWorksheet = xlsx.utils.json_to_sheet(panList.flatMap(item => (item)));
     xlsx.utils.book_append_sheet(resultWorkbook, resultWorksheet, 'ResultSheet');
-    const resultFileName = `result_${id}.xlsx`;
+    const resultFileName = `LinkintimeIpoStatus_${id}.xlsx`;
     xlsx.writeFile(resultWorkbook, `./uploads/${resultFileName}`);
     res.status(200).json({ success: `/download/${resultFileName}`, result: panList, failed_data: failedPans, });
 })
@@ -319,7 +331,54 @@ export {
     getIpoList
 }
 
+import jwt from 'jsonwebtoken'
 
+async function getUser(req) {
+    let token;
+    if (
+        req.headers.authorization &&
+        req.headers.authorization.startsWith('Bearer')
+    ) {
+        try {
+            token = req.headers.authorization.split(' ')[1]
+            const decoded = jwt.verify(token, process.env.JWT_SECRET)
+            const database = await User.findById(decoded.id).select('-password')
+            return database
+        } catch (error) {
+            console.error(error)
+        }
+    }
+}
+
+async function updateUser(req, count) {
+    let token;
+
+    if (
+        req.headers.authorization &&
+        req.headers.authorization.startsWith('Bearer')
+    ) {
+        try {
+            token = req.headers.authorization.split(' ')[1];
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+            // Use findByIdAndUpdate to update the user count
+            const updatedUser = await User.findByIdAndUpdate(
+                decoded.id,
+                { $set: { count: count } },
+                { new: true } // This option returns the updated document
+            ).select('-password');
+
+            // Check if the user was found and updated
+            if (updatedUser) {
+                console.log('User count updated:', updatedUser);
+            } else {
+                console.log('User not found');
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+}
 
 function isColumnMatch(cellValue, columnNameUpperCase, colNum) {
     const cellValueUpperCase = cellValue?.trim().toUpperCase();

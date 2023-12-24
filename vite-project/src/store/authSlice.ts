@@ -9,6 +9,7 @@ interface AuthState {
 interface User {
     _id: string;
     name: string;
+    count :string;
 }
 
 const initialState: AuthState = {
