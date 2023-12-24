@@ -35,6 +35,7 @@ const apiEndpoints = {
     getProfile: 'api/users/profile',
     getFolders: 'getExcel/all',
     getExcelResult: 'getExcel/data',
+    registerUser: 'api/users',
 
 
 };
@@ -60,7 +61,5 @@ export const ipoStatusApi = {
     getProfile: <T>(): Promise<any> => makeRequest<T>(apiEndpoints.getProfile),
     getFolders: <T>(): Promise<any> => makeRequest<T>(apiEndpoints.getFolders),
     getExcelResult: <T>(requestData: any): Promise<any> => makeRequest<T>(apiEndpoints.getExcelResult, 'POST', requestData),
-
-
-
+    register: <T>(requestData: any): Promise<any> => makeRequest<T>(apiEndpoints.registerUser, 'POST', requestData),
 };

@@ -19,6 +19,8 @@ import { Button } from '@/components/ui/button';
 import toast from 'react-hot-toast';
 import { ipoStatusApi } from '@/services/ipostatusApi';
 import SidebarPage from '@/components/SidebarPage';
+import { useDispatch } from 'react-redux';
+import { setUser } from '@/store/authSlice';
 
 interface AccountPageProps { }
 
@@ -42,6 +44,12 @@ const AccountPage: React.FC<AccountPageProps> = () => {
     const [Proccessed, setProccessed] = useState(0);
 
 
+    const dispatch = useDispatch();
+
+    async function getProfile() {
+        const res = await ipoStatusApi.getProfile()
+        dispatch(setUser(res.data))
+    }
 
     const handleDownload = async () => {
         try {
@@ -78,7 +86,7 @@ const AccountPage: React.FC<AccountPageProps> = () => {
         setNotAlloted(0)
         setProccessed(0)
         setProccessed(ipoData?.result.length);
-
+        getProfile()
         ipoData?.result.forEach((pan: any) => {
             console.log(pan)
             if (pan.ALLOT && pan.ALLOT != "0") {

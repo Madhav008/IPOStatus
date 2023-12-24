@@ -9,7 +9,8 @@ interface AuthState {
 interface User {
     _id: string;
     name: string;
-    count :string;
+    count: string;
+    isAdmin: boolean;
 }
 
 const initialState: AuthState = {

@@ -2,7 +2,6 @@ import { SidebarNav } from '@/components/sidebar-nav'
 import { Separator } from '@/components/ui/separator'
 import { RootState } from '@/store/store';
 import { useSelector } from 'react-redux'
-import Footer from './Footer';
 const sidebarNavItems = [
     {
         title: "Check Allotment",
@@ -31,7 +30,7 @@ const sidebarNavItems = [
 const SidebarPage = ({ children }: any) => {
 
     const { user } = useSelector((state: RootState) => state?.auth)
-
+    
 
     return (
 
@@ -72,7 +71,7 @@ const SidebarPage = ({ children }: any) => {
             <Separator className="my-6" />
             <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
                 <aside className="-mx-4 lg:w-1/5">
-                    <SidebarNav items={sidebarNavItems} />
+                    <SidebarNav items={user?.isAdmin ? sidebarNavItems : sidebarNavItems.filter(item => item.title !== 'Admin Pannel')} />
                 </aside>
                 {children}
             </div>
