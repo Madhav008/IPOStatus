@@ -8,6 +8,8 @@ import { useDispatch } from 'react-redux';
 import { setUser } from './store/authSlice';
 import AccountPage from './Pages/AccountPage';
 import Home from './Pages/Home';
+import AdminPage from './Pages/AdminPage';
+import Footer from './components/Footer';
 
 function App() {
 
@@ -23,17 +25,23 @@ function App() {
   }, [dispatch])
 
   return (
-    <div >
-      <Router>
-        <Routes>
-          <Route path="/" element={<AuthPage />} />
-          <Route element={<ProtectedRoutes />}>
-            <Route path='/home' element={<Home/>} />
-            <Route path='/account' element={<AccountPage />} />
-          </Route>
-        </Routes>
-      </Router>
-      <Toaster />
+    <div className='flex flex-col justify-between h-[100vh]'>
+      <div>
+        <Router>
+          <Routes>
+            <Route path="/" element={<AuthPage />} />
+            <Route element={<ProtectedRoutes />}>
+              <Route path='/home' element={<Home />} />
+              <Route path='/admin' element={<AdminPage />} />
+              <Route path='/account' element={<AccountPage />} />
+            </Route>
+          </Routes>
+        </Router>
+        <Toaster />
+      </div>
+      <div>
+        <Footer />
+      </div>
     </div>
   )
 }
