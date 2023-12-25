@@ -36,6 +36,11 @@ const apiEndpoints = {
     getFolders: 'getExcel/all',
     getExcelResult: 'getExcel/data',
     registerUser: 'api/users',
+    getUsers: 'api/users',
+    updateUser: 'api/users/profile',
+
+
+
 
 
 };
@@ -62,4 +67,11 @@ export const ipoStatusApi = {
     getFolders: <T>(): Promise<any> => makeRequest<T>(apiEndpoints.getFolders),
     getExcelResult: <T>(requestData: any): Promise<any> => makeRequest<T>(apiEndpoints.getExcelResult, 'POST', requestData),
     register: <T>(requestData: any): Promise<any> => makeRequest<T>(apiEndpoints.registerUser, 'POST', requestData),
+    getUsers: <T>(): Promise<any> => makeRequest<T>(apiEndpoints.getUsers),
+    updateUser: <T>(requestData: any): Promise<any> => makeRequest<T>(apiEndpoints.updateUser, 'PUT', requestData),
+    logout: (): Promise<any> => {
+        Cookies.remove('authToken');
+        return Promise.resolve();
+    }
+
 };

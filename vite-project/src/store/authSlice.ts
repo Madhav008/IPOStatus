@@ -10,6 +10,7 @@ interface User {
     _id: string;
     name: string;
     count: string;
+    total_count: string;
     isAdmin: boolean;
 }
 

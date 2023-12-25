@@ -16,6 +16,7 @@ const authUser = asyncHandler(async (req, res) => {
             name: user.name,
             email: user.email,
             count: user.count,
+            total_count: user.total_count,
             isAdmin: user.isAdmin,
             token: generateToken(user._id),
         });
@@ -68,25 +69,25 @@ const getUserProfile = asyncHandler(async (req, res) => {
             name: user.name,
             email: user.email,
             isAdmin: user.isAdmin,
-            count: user.count
+            count: user.count,
+            total_count: user.total_count
         });
     } else {
         res.status(404).json({ error: 'User not found' });
     }
 });
 
-// @desc    Update user profile
+// @desc    Update user Count
 // @route   PUT /api/users/profile
 // @access  Private
-const updateUserProfile = asyncHandler(async (req, res) => {
-    const user = await User.findById(req.user._id)
+const updateUserCount = asyncHandler(async (req, res) => {
+
+    const { email, count } = req.body;
+    let user = await User.findOne({ email })
 
     if (user) {
-        user.name = req.body.name || user.name
-        user.email = req.body.email || user.email
-        if (req.body.password) {
-            user.password = req.body.password
-        }
+        user.count = count
+
 
         const updatedUser = await user.save()
 
@@ -94,6 +95,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
             _id: updatedUser._id,
             name: updatedUser.name,
             email: updatedUser.email,
+            count: updatedUser.count,
             isAdmin: updatedUser.isAdmin,
             token: generateToken(updatedUser._id),
         })
@@ -166,7 +168,7 @@ export {
     authUser,
     registerUser,
     getUserProfile,
-    updateUserProfile,
+    updateUserCount,
     getUsers,
     deleteUser,
     getUserById,

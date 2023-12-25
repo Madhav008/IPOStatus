@@ -4,7 +4,7 @@ import {
     authUser,
     registerUser,
     getUserProfile,
-    updateUserProfile,
+    updateUserCount,
     getUsers,
     deleteUser,
     getUserById,
@@ -18,7 +18,7 @@ router.post('/login', authUser)
 router
     .route('/profile')
     .get(protect, getUserProfile)
-    .put(protect, updateUserProfile)
+    .put(protect, admin, updateUserCount)
 router
     .route('/:id')
     .delete(protect, admin, deleteUser)

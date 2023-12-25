@@ -28,23 +28,35 @@
     [*] Cron Jobs
         [*] Create a cron job to delete and add the ipo list in database
         [] Create a cron job to delete of the screenshot.png
+    [*] Check for the user count
+    [*] Create the Footer and Dashboard Page
+
+    [*] Add the Logout
+    [] Create a cron job to refill the user count
+    [*] Add the users 
+    [*] Add the total count
+    [*] Add the remaning day count
+    [*] Add the remaning total count
+
+    [] Made a PDF
+    [] Made a performa
     
-    [] Check for the user count
+    [] Send the checked data as a stream
+    [] Store the once checked data into the database with the userid and excel data
     [] Add the Purva
     [] Add the Skyline
-    [] Create the Footer and Dashboard Page
 
 
 #   Unknown Features
-    [] Setup the admin pannel for uploading the company excel
     [] Create a formater for formating the excel in desired format
-    [] Create a fast way to upload the excel in database
     [] Check the Files Parllelly
+    [*] Setup the admin pannel for uploading the company excel
+    [*] Create a fast way to upload the excel in database
 
 #   Bugs
     [] Login to press enter 
-    [] Create a random id in screenshot
-    [] Resolve the 1.7min timeout error
+    [*] Resolve the 1.7min timeout error
+    [*] Create a random id in screenshot
     [*] Add the Error message in same files
     [*] Add the proper error messages
     [*] Make karvy fast
