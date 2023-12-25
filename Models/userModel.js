@@ -25,6 +25,11 @@ const userSchema = mongoose.Schema(
             type: Number,
             required: true,
             default: 100,
+        },
+        total_count: {
+            type: Number,
+            required: true,
+            default: 100
         }
     },
     {

@@ -57,7 +57,6 @@ const AuthForm = () => {
                     </div>
                     <Input
                         onChange={(event) => { setemail(event.target.value) }}
-
                         placeholder="name@example.com"
                         type="email"
                         autoCapitalize="none"
