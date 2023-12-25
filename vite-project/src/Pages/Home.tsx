@@ -93,7 +93,7 @@ const Home = () => {
     return (
         <SidebarPage>
 
-            <div className="flex items-center justify-between ">
+            <div className="flex items-center justify-between h-[80vh]">
                 <div className="space-y-6  w-[100%] ">
                     <div>
                         <h3 className="text-lg font-medium">Allotment</h3>

@@ -15,37 +15,33 @@ const AuthPage = () => {
     return (
 
 
-        <div>  <div className="container relative top-52 md:top-0 h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
-            <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
-                <div className="absolute inset-0 bg-zinc-900 hidden md:block" />
-                <div className="relative z-20 flex items-center text-lg font-medium">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="mr-2 h-6 w-6"
-                    >
-                        <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
+        <div>
+            <div className=" flex items-center text-lg font-medium">
+                <div className='flex gap-4 m-6'>
+                    <svg className="w-8 text-deep-purple-accent-400" viewBox="0 0 24 24" stroke-linejoin="round" stroke-width="2" stroke-linecap="round" stroke-miterlimit="10" stroke="currentColor" fill="none">
+                        <rect x="3" y="1" width="7" height="12"></rect>
+                        <rect x="3" y="17" width="7" height="6"></rect>
+                        <rect x="14" y="1" width="7" height="6"></rect>
+                        <rect x="14" y="11" width="7" height="12"></rect>
                     </svg>
-                    IPO Allotment Status
+                    <span>IPO Allotment Status</span>
                 </div>
             </div>
-            <div className="lg:p-8">
-                <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-                    <div className="flex flex-col space-y-2 text-center">
-                        <h1 className="text-2xl font-semibold tracking-tight">Login</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Enter your email below to login
-                        </p>
+            <div className="container top-52  flex-col items-center justify-center  lg:max-w-none lg:px-0 h-[88vh]">
+
+                <div className="lg:p-8">
+
+                    <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px] gap-6">
+                        <div className="flex flex-col space-y-2 text-center">
+                            <h1 className="text-4xl font-semibold tracking-tight">Welcome Back</h1>
+                            <p className="text-sm text-muted-foreground">
+                                Enter your email below to login
+                            </p>
+                        </div>
+                        <AuthForm />
                     </div>
-                    <AuthForm />
                 </div>
             </div>
-        </div>
         </div>
     )
 }

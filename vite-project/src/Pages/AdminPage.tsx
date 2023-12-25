@@ -35,7 +35,7 @@ const AdminPage = () => {
     return (
 
         <SidebarPage>
-            <div className="rounded-xl border bg-card text-card-foreground shadow lg:w-[30%]">
+            <div className="rounded-xl border bg-card text-card-foreground shadow lg:w-[30%] h-[80vh]">
 
                 <div className="flex flex-col p-6 space-y-1">
                     <h3 className="font-semibold tracking-tight text-2xl">Create an account</h3>
