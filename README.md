@@ -30,14 +30,15 @@
         [] Create a cron job to delete of the screenshot.png
     [*] Check for the user count
     [*] Create the Footer and Dashboard Page
-
     [*] Add the Logout
-    [] Create a cron job to refill the user count
     [*] Add the users 
     [*] Add the total count
     [*] Add the remaning day count
     [*] Add the remaning total count
-
+    [*] Create a cron job to refill the user count
+    [*] Create the code to cahe once checked pan
+    
+    [] Add the red color if there is the reason in excel
     [] Made a PDF
     [] Made a performa
     
@@ -49,6 +50,8 @@
 
 #   Unknown Features
     [] Create a formater for formating the excel in desired format
+    [] Add the UI to check alloted and not alloted
+    [] Add the UI to refill the count
     [] Check the Files Parllelly
     [*] Setup the admin pannel for uploading the company excel
     [*] Create a fast way to upload the excel in database

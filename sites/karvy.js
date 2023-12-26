@@ -185,7 +185,7 @@ const getCaptcha = async () => {
 
 let isCaptcha = false
 let captchaCode;
-/* 
+
 async function processPan(PAN, company_id) {
     let data;
     if (!isCaptcha) {
@@ -209,8 +209,8 @@ async function processPan(PAN, company_id) {
     }
 
 }
-*/
-const processPan = async (PAN, company_id, maxRetries = 3) => {
+
+/* const processPan = async (PAN, company_id, maxRetries = 3) => {
 
     const browser = await puppeteer.launch({
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -351,7 +351,7 @@ const processPan = async (PAN, company_id, maxRetries = 3) => {
     }
     await browser.close()
     return ({ PAN: PAN, QTY: "Not Able Process this PAN" })
-}
+} */
 
 const karvyCaptcha = async (PAN, company_id = "INOL~inox_indiapleqfv2~0~20/12/2023~20/12/2023~EQT") => {
     const processPandata = [];
