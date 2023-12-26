@@ -37,13 +37,17 @@
     [*] Add the remaning total count
     [*] Create a cron job to refill the user count
     [*] Create the code to cahe once checked pan
+    [*] Store the once checked data into the database with the userid and excel data
     
+    [] Give the headline for count error 
+    [] Add a emergency line that it's not working now or in maitainace
+
+
     [] Add the red color if there is the reason in excel
     [] Made a PDF
     [] Made a performa
     
     [] Send the checked data as a stream
-    [] Store the once checked data into the database with the userid and excel data
     [] Add the Purva
     [] Add the Skyline
 
@@ -51,12 +55,14 @@
 #   Unknown Features
     [] Create a formater for formating the excel in desired format
     [] Add the UI to check alloted and not alloted
-    [] Add the UI to refill the count
+    [*] Add the UI to refill the count
     [] Check the Files Parllelly
     [*] Setup the admin pannel for uploading the company excel
     [*] Create a fast way to upload the excel in database
 
 #   Bugs
+    [] Need to change the headears periodicaly in karvy bash scripts karvy.sh and captcha.sh
+    [] Need to add the check for data.category.include error when Show message (Pan data not available )
     [] Login to press enter 
     [*] Resolve the 1.7min timeout error
     [*] Create a random id in screenshot

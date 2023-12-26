@@ -33,9 +33,9 @@ def process_all_excel_files(path, output_folder, company_name_value):
             split_excel_to_csv(file_path, output_folder, company_name_value)
 
 # Specify the path to the directory containing Excel files, the output folder for CSV files, and the Company_Name value
-input_excel_path = "/mnt/c/Users/madha/Downloads/Compressed/MOTISONS_ALTREJ/"
+input_excel_path = "C:/Users/madha/Downloads/Compressed/CREDO_ALTREJ"
 output_folder = "Files"
-company_name_value = "MOTISONS"
+company_name_value = "CREDO"
 
 # Call the function to process all Excel files in the specified path
 process_all_excel_files(input_excel_path, output_folder, company_name_value)
