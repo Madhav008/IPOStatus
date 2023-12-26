@@ -47,7 +47,7 @@ curl --location 'https://kprism.kfintech.com/ipostatus/' \
 --data-urlencode 'txt_nsdl_dpid=' \
 --data-urlencode 'txt_nsdl_clid=' \
 --data-urlencode 'txt_cdsl_clid=' \
---data-urlencode 'txt_pan=riDVGvPsdqIIWl0XeJbHOA==' \
+--data-urlencode "txt_pan=$PAN" \
 --data-urlencode "txt_captcha=$CAPTCHA" \
 --data-urlencode 'txt_conf_pan=' \
 --data-urlencode '_h_query=pan' \
