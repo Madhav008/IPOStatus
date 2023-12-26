@@ -1,15 +1,20 @@
-import winston from 'winston';
+// logger.js
+import { createLogger, format, transports } from 'winston';
+const { combine, timestamp, label, printf } = format;
 
-// Configure the Winston logger
-const logger = winston.createLogger({
-    transports: [
-        new winston.transports.Console(),
-        new winston.transports.File({ filename: 'app.log' }),
-    ],
-    format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
+const myFormat = printf(({ level, message, timestamp }) => {
+    return `${timestamp} [${level}]: ${message}`;
 });
 
-export {
-    logger
-}
+const logger = createLogger({
+    format: combine(
+        timestamp({ format: 'YYYY-MM-DD HH:mm:ss', timezone: 'Asia/Kolkata' }), // Use 'Asia/Kolkata' for IST
+        myFormat,
+    ),
+    transports: [
+        new transports.Console(),
+        new transports.File({ filename: 'app.log' }),
+    ]
+});
 
+export { logger }

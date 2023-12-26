@@ -4,6 +4,7 @@ import Jimp from 'jimp';
 import axios from 'axios'
 import cheerio from 'cheerio'
 import { exec, execSync } from 'child_process';
+import { logger } from '../logger.js';
 
 const getKarvyIpoList = async () => {
     try {
@@ -19,6 +20,8 @@ const getKarvyIpoList = async () => {
         return options;
     } catch (error) {
         console.error('Error:', error);
+        logger.error({ message: 'Error in getKarvyIpoList:' + error });
+
     }
 }
 async function decodeCaptcha(img) {
@@ -46,6 +49,8 @@ async function decodeCaptcha(img) {
         return captchaCode
     } catch (error) {
         console.log("ERROR WHILE DECODING CAPTCHA")
+        logger.error({ message: 'ERROR WHILE DECODING CAPTCHA:' + error });
+
         return 0
     }
 }
@@ -75,6 +80,8 @@ async function enhanceImage(imagePath, scaleFactor = 4) {
         return imagePath;
     } catch (error) {
         console.error('Error enhancing image:', error);
+        logger.error({ message: 'Error enhancing image:' + error });
+
         return imagePath;
     }
 
@@ -170,6 +177,8 @@ const getCaptcha = async () => {
         return result.trim();
     } catch (error) {
         console.error('Error:', error.message);
+        logger.error({ message: 'Error:' + error });
+
     }
 };
 
@@ -186,6 +195,8 @@ async function processPan(PAN, company_id) {
             return processPan(PAN, company_id)
         }
         console.log(captchaCode);
+        logger.info({ message: `Captcha Code: ${captchaCode}` });
+
     }
     if (captchaCode != 0) {
         data = await executeCmd(company_id, PAN, captchaCode);
@@ -210,6 +221,8 @@ const karvyCaptcha = async (PAN, company_id = "INOL~inox_indiapleqfv2~0~20/12/20
 
             if (data && data?.Category && data.Category.includes("Captcha is not valid")) {
                 console.log(`Invalid captcha for PAN ${Pan}. Retrying (${retryAttempts} attempts left)`);
+                logger.info({ message: `Invalid captcha for PAN ${Pan}. Retrying (${retryAttempts} attempts left)` });
+
                 isCaptcha = false;
                 retryAttempts--;
             } else {

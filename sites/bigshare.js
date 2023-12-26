@@ -1,3 +1,4 @@
+import { logger } from '../logger.js';
 import puppeteer from 'puppeteer'
 
 
@@ -28,6 +29,8 @@ const IPOList = async () => {
     return options;
   } catch (error) {
     console.error('Error:', error);
+    logger.error({ message: 'Error in IPOList: ' + error });
+
   } finally {
     await browser.close();
   }
@@ -98,11 +101,15 @@ const bigshare = async (panList, company_id) => {
           return data;
         } else {
           console.error(`Captcha data not available for PAN ${PAN}. Adding to failedPans.`);
+          logger.error({ message: `Captcha data not available for PAN ${PAN}. Adding to failedPans.` });
+
           failedPans.push(PAN);
           return null;
         }
       } catch (error) {
         console.error(`Failed to retrieve data for PAN ${PAN} even after retry.`);
+        logger.error({ message: `Failed to retrieve data for PAN ${PAN} even after retry.`+ error });
+
         return null;
       }
     };
@@ -121,22 +128,30 @@ const bigshare = async (panList, company_id) => {
               PAN: PAN,
               ...data
             }
-            // console.log(`Data for PAN ${PAN}:`, JSON.stringify(finaldata, null, 2));
+            console.log(`Data for PAN ${PAN}:`, JSON.stringify(finaldata, null, 2));
+            logger.info({ message: `Data for PAN ${PAN}:`, finaldata });
+
             ipoStatusList.push(finaldata);
             success = true;
           } else {
             console.error(`Failed attempt for PAN ${PAN}. Retrying...`);
+            logger.error({ message: `Failed attempt for PAN ${PAN}. Retrying...` });
+
             retries--;
             await sleep(1000);
             await page.reload()
           }
         } catch (error) {
           console.error(`Error processing PAN ${PAN}:`, error);
+          logger.error({ message: `Error processing PAN ${PAN}:`+ error });
+
         }
       }
 
       if (!success) {
         console.error(`Failed to retrieve data for PAN ${PAN} after retries.`);
+        logger.error({ message: `Failed to retrieve data for PAN ${PAN} after retries.` });
+
         failedPans.push(PAN);
       }
     }
@@ -146,6 +161,8 @@ const bigshare = async (panList, company_id) => {
       const data = await retryBigshare(failedPAN);
       if (data) {
         console.log(`Data for PAN ${failedPAN} (after retry):`, JSON.stringify(data, null, 2));
+        logger.info({ message: `Data for PAN ${failedPAN} (after retry):`, data });
+
         ipoStatusList.push(data);
       }
     }
@@ -153,6 +170,8 @@ const bigshare = async (panList, company_id) => {
     return { ipoStatusList, failedPans };
   } catch (error) {
     console.error('Error:', error);
+    logger.error({ message: 'Error in bigshare:'+ error });
+
   } finally {
     await browser.close();
   }

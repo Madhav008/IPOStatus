@@ -6,12 +6,13 @@ import { getLinkinIpoList } from '../sites/linkintime.js';
 import { getKarvyIpoList } from '../sites/karvy.js';
 import { IPOList } from '../sites/bigshare.js';
 import { XMLParser } from 'fast-xml-parser'
+import { logger } from '../logger.js';
 
 const parser = new XMLParser()
 let cronJob;
 
 const start = asyncHandler(async (req, res) => {
-    const cronExpression = '0 12 * * *'; // Run every day at 12:00 PM
+    const cronExpression = '0 */3 * * *'; // Run every day every 3 hours
 
     cronJob = cron.schedule(cronExpression, async () => {
         await updateDocuments();
@@ -22,10 +23,13 @@ const start = asyncHandler(async (req, res) => {
 const status = asyncHandler(async (req, res) => {
     try {
         // Check if the cron job is running
-        const isRunning = cronJob ? cronJob.running : false;  // Adjust this based on your actual cron job object
-
+        // Adjust this based on your actual cron job object
+        let isRunning = false;
+        if (cronJob) {
+            isRunning = true
+        }
         // Assuming you have a method to update documents
-        await updateDocuments();
+        // await updateDocuments();
 
         res.status(200).json({ status: isRunning ? 'Running' : 'Not Running' });
     } catch (error) {
@@ -60,15 +64,15 @@ async function updateDocuments() {
 
         // Update document for Karvy
         await updateDocument('Karvy');
+
     } catch (error) {
-        console.error('Error updating documents:', error);
+        logger.error({ message: `Error updating documents:, ${error}` });
     }
 }
 
 async function updateDocument(sitename) {
     try {
         const list = await getIpoListData(sitename);
-        console.log(list);
 
         const newData = {
             site_name: sitename,
@@ -82,9 +86,9 @@ async function updateDocument(sitename) {
             { new: true, upsert: true }
         );
 
-        console.log(`Document updated for ${sitename}: ${result} document(s) modified`);
+        logger.info({ message: `Document updated for ${sitename}: ${result} document(s) modified` });
     } catch (error) {
-        console.error(`Error updating document for ${sitename}:`, error);
+        logger.error({ message: `Error updating document for ${sitename}: ${error}` });
     }
 }
 
@@ -120,7 +124,7 @@ const getIpoListData = async (sitename) => {
             throw new Error('Invalid sitename');
         }
     } catch (error) {
-        console.error('Error:', error);
+        logger.error({ message: `Error  ${sitename}: ${error}` });
         throw error; // Rethrow the error for the calling function to handle
     }
 };

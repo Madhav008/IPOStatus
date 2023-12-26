@@ -30,17 +30,16 @@ const publicDirectoryPath = path.join('uploads');
 app.use(express.static(publicDirectoryPath));
 
 // Middleware to log requests
-app.use(morgan('dev'));
+// app.use(morgan('dev'));
 
 
 // Middleware to log response time
 app.use((req, res, next) => {
+  const start = Date.now();
   res.on('finish', () => {
-    logger.info({
-      method: req.method,
-      url: req.originalUrl,
-      status: res.statusCode,
-    });
+    const responseTime = Date.now() - start;
+
+    logger.info({ message: `${req.method} ${req.originalUrl} ${res.statusCode} ${responseTime}ms`, });
   });
   next();
 });
@@ -61,6 +60,8 @@ app.use('/cron', cronRoutes)
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
+  logger.info({ message: `Server is running on port ${port}` });
+
 });
 
 // ngrok.connect({ addr: port, authtoken_from_env: true })
