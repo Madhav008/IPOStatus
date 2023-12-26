@@ -5,6 +5,7 @@ import axios from 'axios'
 import cheerio from 'cheerio'
 import { exec, execSync } from 'child_process';
 import { logger } from '../logger.js';
+import { cacheData, checkIfCached } from '../controllers/cacheController.js';
 
 const getKarvyIpoList = async () => {
     try {
@@ -215,20 +216,28 @@ const karvyCaptcha = async (PAN, company_id = "INOL~inox_indiapleqfv2~0~20/12/20
     for (const Pan of PAN) {
         let retryAttempts = 3;
         let data;
+        const { isPandata, pandata } = await checkIfCached(Pan, company_id)
 
-        while (retryAttempts > 0) {
-            data = await processPan(Pan, company_id);
 
-            if (data && data?.Category && data.Category.includes("Captcha is not valid")) {
-                console.log(`Invalid captcha for PAN ${Pan}. Retrying (${retryAttempts} attempts left)`);
-                logger.info({ message: `Invalid captcha for PAN ${Pan}. Retrying (${retryAttempts} attempts left)` });
+        if (isPandata) {
+            data = JSON.parse(pandata.result)
+        } else {
+            while (retryAttempts > 0) {
+                data = await processPan(Pan, company_id);
 
-                isCaptcha = false;
-                retryAttempts--;
-            } else {
-                break; // Break out of the retry loop if captcha is valid
+                if (data && data?.Category && data.Category.includes("Captcha is not valid")) {
+                    console.log(`Invalid captcha for PAN ${Pan}. Retrying (${retryAttempts} attempts left)`);
+                    logger.info({ message: `Invalid captcha for PAN ${Pan}. Retrying (${retryAttempts} attempts left)` });
+
+                    isCaptcha = false;
+                    retryAttempts--;
+                } else {
+                    break; // Break out of the retry loop if captcha is valid
+                }
             }
         }
+
+
 
         if (data && data.Category && data.Category.includes("Captcha is not valid")) {
             failedPandata.push({ ...data, PAN: Pan });
@@ -236,6 +245,9 @@ const karvyCaptcha = async (PAN, company_id = "INOL~inox_indiapleqfv2~0~20/12/20
             processPandata.push({ ...data, PAN: Pan });
         } else {
             processPandata.push({ ...data, PAN: Pan });
+            if (!isPandata) {
+                await cacheData(Pan, company_id, data);
+            }
         }
     }
 

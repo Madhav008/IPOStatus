@@ -7,6 +7,7 @@ import { getKarvyIpoList } from '../sites/karvy.js';
 import { IPOList } from '../sites/bigshare.js';
 import { XMLParser } from 'fast-xml-parser'
 import { logger } from '../logger.js';
+import { getAllUser, updateUserCount } from './pancountController.js';
 
 const parser = new XMLParser()
 let cronJob;
@@ -29,7 +30,7 @@ const status = asyncHandler(async (req, res) => {
             isRunning = true
         }
         // Assuming you have a method to update documents
-        // await updateDocuments();
+        await updateDocuments();
 
         res.status(200).json({ status: isRunning ? 'Running' : 'Not Running' });
     } catch (error) {
@@ -50,9 +51,90 @@ const stop = asyncHandler(async (req, res) => {
     }
 });
 
+let refilJob;
+const startRefill = asyncHandler(async (req, res) => {
+    const cronExpression = '0 23 * * *'; // Run every day every 11PM 
+
+    refilJob = cron.schedule(cronExpression, async () => {
+        await refillUserPanCount();
+    });
+
+    res.status(200).json({ message: 'Cron job started successfully.' });
+});
+
+
+const statusRefill = asyncHandler(async (req, res) => {
+    try {
+        // Check if the cron job is running
+        // Adjust this based on your actual cron job object
+        let isRunning = false;
+        if (refilJob) {
+            isRunning = true
+        }
+        // Assuming you have a method to update documents
+        await refillUserPanCount();
+
+
+        res.status(200).json({ status: isRunning ? 'Running' : 'Not Running' });
+    } catch (error) {
+
+        ('Error:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
+const stopRefill = asyncHandler(async (req, res) => {
+    // Stop the cron job
+    if (refilJob) {
+        refilJob.destroy();
+        refilJob = null;
+        res.status(200).json({ message: 'Cron job stopped successfully.' });
+    } else {
+        res.status(200).json({ message: 'Cron job is not running.' });
+    }
+});
+
+
+
 export {
-    start, status, stop
+    start, status, stop,
+    startRefill, statusRefill, stopRefill
 };
+
+
+async function refillUserPanCount() {
+    try {
+        const users = await getAllUser();
+
+        // Define the batch size
+        const batchSize = 10;
+
+        // Split the users into batches
+        const userBatches = [];
+        for (let i = 0; i < users.length; i += batchSize) {
+            const batch = users.slice(i, i + batchSize);
+            userBatches.push(batch);
+        }
+
+        // Process each batch in parallel
+        await Promise.all(userBatches.map(async (batch) => {
+            // Create an array of promises for the current batch
+            const updateUserPromises = batch.map(user => updateUserCount(user._id));
+
+            // Wait for all promises in the current batch to settle
+            await Promise.all(updateUserPromises);
+        }));
+
+        logger.info({ message: 'All user counts updated successfully.' });
+    } catch (error) {
+        logger.error({ message: 'Error updating user counts: ' + error })
+    }
+}
+
+
+
+
 
 async function updateDocuments() {
     try {
