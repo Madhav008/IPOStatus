@@ -102,8 +102,8 @@ const Home = () => {
     return (
         <SidebarPage>
 
-            <div className="flex items-start justify-between h-[80vh]">
-                <div className="space-y-6  w-[100%] ">
+            <div className="flex items-start justify-center lg:justify-between  md:h-[80vh] flex-wrap lg:flex-nowrap">
+                <div className="space-y-6  w-[100%] mb-6">
                     <div>
                         <h3 className="text-lg font-medium">Allotment</h3>
                         <p className="text-sm text-muted-foreground">
@@ -131,7 +131,7 @@ const Home = () => {
                     <Separator />
                     <ProfileForm loading={loading} ipoList={ipoList} selectedSite={lsite} handleIpoStatusData={handleIpoStatusData} />
                 </div>
-                <div className=" flex flex-wrap ml-[200px] gap-2">
+                <div className=" flex flex-wrap  lg:ml-[200px] gap-2">
                     <Card>
                         <CardHeader className="flex flex-row items-center text-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium w-[100px]">

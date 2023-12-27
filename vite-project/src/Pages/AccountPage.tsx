@@ -154,7 +154,7 @@ const AccountPage: React.FC<AccountPageProps> = () => {
 
     return (
         <SidebarPage>
-            <div className="flex items-start justify-between h-[80vh]">
+            <div className="flex items-start justify-between md:h-[80vh] flex-wrap lg:flex-nowrap">
                 <div className="space-y-6  w-[100%] ">
                     <div>
                         <h3 className="text-lg font-medium">Premium </h3>
@@ -202,7 +202,7 @@ const AccountPage: React.FC<AccountPageProps> = () => {
                         </>
                     )}
                 </div>
-                <div className=" flex flex-wrap ml-[200px] gap-2">
+                <div className=" flex flex-wrap lg:ml-[200px] gap-2">
                     <Card>
                         <CardHeader className="flex flex-row items-center text-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium w-[100px]">
