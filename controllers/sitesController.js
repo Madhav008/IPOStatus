@@ -371,6 +371,8 @@ async function updateUser(req, count) {
             // Check if the user was found and updated
             if (updatedUser) {
                 console.log('User count updated:', updatedUser);
+                logger.info('User count updated: '+ updatedUser);
+
             } else {
                 console.log('User not found');
             }

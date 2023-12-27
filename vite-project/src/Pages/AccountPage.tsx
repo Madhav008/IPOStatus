@@ -21,6 +21,7 @@ import { ipoStatusApi } from '@/services/ipostatusApi';
 import SidebarPage from '@/components/SidebarPage';
 import { useDispatch } from 'react-redux';
 import { setUser } from '@/store/authSlice';
+import { logAnalyticsEvent } from '@/store/firebase';
 
 interface AccountPageProps { }
 
@@ -127,7 +128,7 @@ const AccountPage: React.FC<AccountPageProps> = () => {
 
     useEffect(() => {
         setLoading(true);
-
+        logAnalyticsEvent("PREMIUM PAGE OPENED")
         const loadingToastId = toast.loading('Getting the Companies please wait ...');
         async function getTheData() {
             try {

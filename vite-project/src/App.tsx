@@ -10,6 +10,8 @@ import AccountPage from './Pages/AccountPage';
 import Home from './Pages/Home';
 import AdminPage from './Pages/AdminPage';
 import Footer from './components/Footer';
+import { logAnalyticsEvent } from './store/firebase';
+
 
 function App() {
 
@@ -18,7 +20,9 @@ function App() {
   async function getProfile() {
     const res = await ipoStatusApi.getProfile()
     dispatch(setUser(res.data))
+    logAnalyticsEvent("profile_fetched");
   }
+
 
   useEffect(() => {
     getProfile()

@@ -9,9 +9,12 @@ import { Label } from '@/components/ui/label'
 import SidebarPage from '@/components/SidebarPage'
 import { useDispatch } from 'react-redux'
 import { setUser } from '@/store/authSlice'
+import { logAnalyticsEvent } from '@/store/firebase'
 
 
 const Home = () => {
+    logAnalyticsEvent("HOME PAGE OPENED");
+
 
     const [ipoList, setIpoList] = useState([])
     const [loading, setLoading] = useState(false)
@@ -58,6 +61,8 @@ const Home = () => {
         getProfile()
 
         if (data.site === 'Linkintime') {
+            logAnalyticsEvent("LINKINTIME DATA REQUESTED ");
+
             data.result.forEach((ele: any) => {
                 if (ele.Qty > 0) {
                     SetAlloted((prevAlloted: any) => prevAlloted + 1);
@@ -68,6 +73,8 @@ const Home = () => {
         }
 
         if (data.site === 'Bigshare') {
+            logAnalyticsEvent("BIGSHARE DATA REQUESTED ");
+
             data.result.forEach((ele: any) => {
                 if (ele.Alloted != 'NON-ALLOTTE' && ele.Alloted != "") {
                     SetAlloted((prevAlloted: any) => prevAlloted + 1);
@@ -78,6 +85,8 @@ const Home = () => {
         }
 
         if (data.site === 'Karvy') {
+            logAnalyticsEvent("KARVY DATA REQUESTED ");
+
             data.result.forEach((ele: any) => {
                 if (ele.Alloted && ele.Alloted != "0") {
                     SetAlloted((prevAlloted: any) => prevAlloted + 1);
