@@ -2,7 +2,7 @@ import express from 'express'
 const router = express.Router()
 
 import { admin } from '../middleware/authMiddleware.js'
-import { start, startRefill, status, statusRefill, stop, stopRefill } from '../controllers/cronController.js'
+import { start, startRefill, startheaders, status, statusRefill, statusheaders, stop, stopRefill, stopheaders } from '../controllers/cronController.js'
 
 
 router.get('/start', start)
@@ -18,6 +18,12 @@ router.get('/refil/status', statusRefill)
 
 router.get('/refil/stop', stopRefill)
 
+
+router.get('/headers/start', startheaders)
+
+router.get('/headers/status', statusheaders)
+
+router.get('/headers/stop', stopheaders)
 
 
 

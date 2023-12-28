@@ -44,7 +44,7 @@
     [] Give the headline for count error 
     [] Add a emergency line that it's not working now or in maitainace
 
-
+    [] Add the cron job to reset the headers
     [] Add the red color if there is the reason in excel
     
     [] Send the checked data as a stream
@@ -55,14 +55,15 @@
 #   Unknown Features
     [] Create a formater for formating the excel in desired format
     [] Add the UI to check alloted and not alloted
-    [*] Add the UI to refill the count
     [] Check the Files Parllelly
+    [*] Add the UI to refill the count
     [*] Setup the admin pannel for uploading the company excel
     [*] Create a fast way to upload the excel in database
 
 #   Bugs
-    [] Need to change the headears periodicaly in karvy bash scripts karvy.sh and captcha.sh
-    [] Need to add the check for data.category.include error when Show message (Pan data not available )
+    [*] Add the check if the user have less then 100 pan count 
+    [*] Need to change the headears periodicaly in karvy bash scripts karvy.sh and captcha.sh
+    [*] Need to add the check for data.category.include error when Show message (Pan data not available )
     [] Login to press enter 
     [*] Resolve the 1.7min timeout error
     [*] Create a random id in screenshot
@@ -79,3 +80,9 @@
     sudo apt-get update
     sudo apt-get install libatk-bridge2.0-0 libatk1.0-0 libglib2.0-0 libgtk-3-0 libnss3 libx11-xcb1 libxcomposite1 libxcursor1 libxdamage1 libxi6 libxtst6
     sudo apt-get install -y libgbm-dev
+
+#   Cron API
+    https://ipoapi.fanxange.live/cron/start
+    https://ipoapi.fanxange.live/cron/refil/start
+    https://ipoapi.fanxange.live/cron/headers/start
+    

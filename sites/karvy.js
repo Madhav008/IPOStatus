@@ -272,6 +272,8 @@ async function getIPOStatus(pan, company, captcha) {
         return data;
     } catch (error) {
         console.log("ERROR OCCUR", error.message)
+        logger.info({ message: "ERROR OCCUR: " + error.message })
+
         return { Category: "ERROR" }
     }
 

@@ -8,6 +8,7 @@ import { IPOList } from '../sites/bigshare.js';
 import { XMLParser } from 'fast-xml-parser'
 import { logger } from '../logger.js';
 import { getAllUser, updateUserCount } from './pancountController.js';
+import { formatCookies } from './headersController.js';
 
 const parser = new XMLParser()
 let cronJob;
@@ -97,9 +98,54 @@ const stopRefill = asyncHandler(async (req, res) => {
 
 
 
+let headersJob;
+const startheaders = asyncHandler(async (req, res) => {
+    const cronExpression = '0 */3 * * *'; // Run every 3 hrs 
+
+    headersJob = cron.schedule(cronExpression, async () => {
+        await formatCookies();
+    });
+
+    res.status(200).json({ message: 'Heders job started successfully.' });
+});
+
+
+const statusheaders = asyncHandler(async (req, res) => {
+    try {
+        // Check if the cron job is running
+        // Adjust this based on your actual cron job object
+        let isRunning = false;
+        if (headersJob) {
+            isRunning = true
+        }
+
+        await formatCookies()
+
+        res.status(200).json({ status: isRunning ? 'Running' : 'Not Running' });
+    } catch (error) {
+
+        ('Error:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
+const stopheaders = asyncHandler(async (req, res) => {
+    // Stop the cron job
+    if (headersJob) {
+        headersJob.destroy();
+        headersJob = null;
+        res.status(200).json({ message: 'Heders job stopped successfully.' });
+    } else {
+        res.status(200).json({ message: 'Heders job is not running.' });
+    }
+});
+
+
 export {
     start, status, stop,
-    startRefill, statusRefill, stopRefill
+    startRefill, statusRefill, stopRefill,
+    startheaders, statusheaders, stopheaders
 };
 
 

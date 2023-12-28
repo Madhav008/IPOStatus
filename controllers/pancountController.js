@@ -11,7 +11,13 @@ async function updateUserCount(userid) {
 
         let totalCount = user.total_count;
 
-        totalCount = totalCount - (defaultCount - lastdayCount);
+        if (totalCount < 100) {
+            defaultCount = totalCount
+            totalCount = 0;
+        } else {
+
+            totalCount = totalCount - (defaultCount - lastdayCount);
+        }
 
         if (user) {
             user.count = defaultCount;
