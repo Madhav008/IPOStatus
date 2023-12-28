@@ -182,7 +182,7 @@ async function formatCookies() {
 }
 
 // Example usage:
-// formatCookies();
+formatCookies();
 
 async function readHeaders() {
     //get the cookie 
@@ -379,4 +379,4 @@ const karvyCaptcha = async (PAN = ["AEMPO5769C", "JJZPK6464B",], company_id = "I
     console.log(processPandata)
 }
 
-karvyCaptcha()
+// karvyCaptcha()

@@ -183,7 +183,7 @@ const scrapeResultPage = (resp) => {
  */
 const getCaptcha = async (cookie) => {
     try {
-        const result = execSync(`bash sites/captcha.sh ${cookie}`, { encoding: 'utf-8' });
+        const result = execSync(`bash sites/captcha.sh "${cookie}"`, { encoding: 'utf-8' });
         return result.trim();
     } catch (error) {
         console.error('Error:', error.message);
@@ -271,7 +271,8 @@ async function getIPOStatus(pan, company, captcha) {
         const data = scrapeResultPage(resp.data)
         return data;
     } catch (error) {
-        console.log("ERROR OCCUR")
+        console.log("ERROR OCCUR", error.message)
+        return { Category: "ERROR" }
     }
 
 
@@ -480,14 +481,18 @@ const karvyCaptcha = async (PAN, company_id = "INOL~inox_indiapleqfv2~0~20/12/20
 
 
 
-        if (data && data.Category && data.Category.includes("Captcha is not valid")) {
-            failedPandata.push({ ...data, PAN: Pan });
-        } else if (data && data.Category && data.Category.includes("PAN details not available.")) {
-            processPandata.push({ ...data, PAN: Pan });
-        } else {
-            processPandata.push({ ...data, PAN: Pan });
-            if (!isPandata) {
-                await cacheData(Pan, company_id, data);
+        if (data) {
+            if (data && data.Category && data.Category.includes("Captcha is not valid")) {
+                failedPandata.push({ ...data, PAN: Pan });
+            } else if (data && data.Category && data.Category.includes("PAN details not available.")) {
+                processPandata.push({ ...data, PAN: Pan });
+            } else if (data && data.Category.includes("ERROR")) {
+                failedPandata.push({ ...data, PAN: Pan })
+            } else {
+                processPandata.push({ ...data, PAN: Pan });
+                if (!isPandata) {
+                    await cacheData(Pan, company_id, data);
+                }
             }
         }
     }
