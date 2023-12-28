@@ -24,7 +24,6 @@
     [*] Add the excel feature
     [*] Select the IPO list from the specific site
     [*] Create the counter for the excel page alloted and not alloted
-    
     [*] Cron Jobs
         [*] Create a cron job to delete and add the ipo list in database
         [] Create a cron job to delete of the screenshot.png
@@ -38,14 +37,15 @@
     [*] Create a cron job to refill the user count
     [*] Create the code to cahe once checked pan
     [*] Store the once checked data into the database with the userid and excel data
-    
+    [*] Added realtime analytics 
+    [*] Made a PDF
+    [*] Made a performa
+
     [] Give the headline for count error 
     [] Add a emergency line that it's not working now or in maitainace
 
 
     [] Add the red color if there is the reason in excel
-    [] Made a PDF
-    [] Made a performa
     
     [] Send the checked data as a stream
     [] Add the Purva

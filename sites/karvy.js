@@ -1,5 +1,5 @@
 import { createWorker } from 'tesseract.js';
-
+import { promises as fsPromises } from 'fs';
 import Jimp from 'jimp';
 import axios from 'axios'
 import cheerio from 'cheerio'
@@ -9,7 +9,7 @@ import { cacheData, checkIfCached } from '../controllers/cacheController.js';
 import puppeteer from 'puppeteer';
 const getKarvyIpoList = async () => {
     try {
-        const response = await axios.get('https://kprism.kfintech.com/ipostatus/');
+        const response = await axios.get('https://kosmic.kfintech.com/ipostatus/');
         const html = response.data;
 
         const $ = cheerio.load(html);
@@ -116,13 +116,22 @@ function getIPOAllotment(html) {
     const $ = cheerio.load(html)
     // Extracting elements from the HTML
     // Extracting specific details
-    const applicationNumber = $('#l1').text().trim();
-    const category = $('#Label1').text().trim();
-    const name = $('#Label2').text().trim();
-    const dpIdClientId = $('#lbl_dpclid').text().trim();
-    const pan = $('#lbl_pan').text().trim();
-    const applied = $('#Label5').text().trim();
-    const allotted = $('#lbl_allot').text().trim();
+
+    const applicationNumber = $('#grid_results_ctl02_l1').text().trim();
+    const category = $('#grid_results_ctl02_Label1').text().trim();
+    const name = $('#grid_results_ctl02_Label2').text().trim();
+    const dpIdClientId = $('#grid_results_ctl02_lbl_dpclid').text().trim();
+    const pan = $('#grid_results_ctl02_lbl_pan').text().trim();
+    const applied = $('#grid_results_ctl02_Label5').text().trim();
+    const allotted = $('#grid_results_ctl02_lbl_allot').text().trim();
+
+    // const applicationNumber = $('#l1').text().trim();
+    // const category = $('#Label1').text().trim();
+    // const name = $('#Label2').text().trim();
+    // const dpIdClientId = $('#lbl_dpclid').text().trim();
+    // const pan = $('#lbl_pan').text().trim();
+    // const applied = $('#Label5').text().trim();
+    // const allotted = $('#lbl_allot').text().trim();
 
     /* 
     console.log('Application Number:', applicationNumber);
@@ -159,7 +168,7 @@ const scrapeResultPage = (resp) => {
     }
 };
 
-const executeCmd = async (company_id, pan, captcha) => {
+/* const executeCmd = async (company_id, pan, captcha) => {
     // console.log(`bash karvy.sh ${company_id} ${pan} ${captcha}`)
     return new Promise((resolve, reject) => {
         exec(`bash sites/karvy.sh ${company_id} ${pan} ${captcha}`, (error, stdout, stderr) => {
@@ -171,25 +180,114 @@ const executeCmd = async (company_id, pan, captcha) => {
         });
     });
 };
-
-const getCaptcha = async () => {
+ */
+const getCaptcha = async (cookie) => {
     try {
-        const result = execSync('bash sites/captcha.sh', { encoding: 'utf-8' });
+        const result = execSync(`bash sites/captcha.sh ${cookie}`, { encoding: 'utf-8' });
         return result.trim();
     } catch (error) {
         console.error('Error:', error.message);
-        logger.error({ message: 'Error:' + error });
-
     }
 };
+
+
+async function readHeaders() {
+    //get the cookie 
+
+    const filePath = 'formattedCookies.json';
+    const cookieData = await fsPromises.readFile(filePath, 'utf8');
+
+    let cookie = JSON.parse(cookieData).Cookie
+    var headers = {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Cache-Control': 'max-age=0',
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        // 'Cookie': 'ASP.NET_SessionId=h4vjang33quv2nhdvfzfzctu; __AntiXsrfToken=67ff87cd413d4ac2a99cfc04d3081fdd; TS01abe8f3=0176bf02ac91ddbc803431d6a490a964138807e71242dd69fef3e132985295ed742ba529cdcdfe49c1409844c90687e5c9447f17f6bd61a04c4332db5f73c89c7641e7b734f1838b956462e7dc7eff895cebe58da33104e5360afc81e4ad9a0d15cd4d04c8; TS01abe8f3=0176bf02acb653d8ebb9bb1668c6b65c1935c0fcebc090043431eb4793d3976a0e526501ce3d7567428d09791a0f98f17679b3bd8b802bff5a22cddcef49260c1d5fc2a07a925e56fedad19db7e67a20c545ae4095276b69e9a18da8b0a4e2838b09122a39',
+        'Cookie': `${cookie}`,
+        'Origin': 'https://kosmic.kfintech.com',
+        'Referer': 'https://kosmic.kfintech.com/',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'same-origin',
+        'Sec-Fetch-User': '?1',
+        'Upgrade-Insecure-Requests': '1',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"'
+    }
+
+    return headers
+}
+
+
+async function readFormData(formInputs) {
+
+    const filePath = 'formInput.json';
+    const formData = await fsPromises.readFile(filePath, 'utf8');
+    return JSON.parse(formData)
+}
+
+
+async function getIPOStatus(pan, company, captcha) {
+
+
+    let formData = await readFormData();
+
+    formData.__EVENTTARGET = 'btn_submit_query'
+    formData.__EVENTARGUMENT = ''
+    formData.__LASTFOCUS = ''
+    formData.ddl_ipo = company
+    formData.txt_applno = '++DQvBK0Qbuiym1bw08URQ=='
+    formData.ddl_depository
+    formData.txt_nsdl_dpid
+    formData.txt_nsdl_clid
+    formData.txt_cdsl_clid
+    formData.txt_pan = pan
+    formData.txt_captcha = captcha + ''
+    formData.txt_conf_pan
+    formData._h_query = 'pan'
+    formData.req_src = ''
+
+
+    delete formData.btn_multiple;
+
+    let headers = await readHeaders()
+
+
+    let config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: 'https://kosmic.kfintech.com/ipostatus/',
+        headers: headers,
+        data: formData
+    };
+
+
+    try {
+        const resp = await axios.request(config);
+        const data = scrapeResultPage(resp.data)
+        return data;
+    } catch (error) {
+        console.log("ERROR OCCUR")
+    }
+
+
+}
 
 let isCaptcha = false
 let captchaCode;
 
 async function processPan(PAN, company_id) {
     let data;
+    const filePath = 'formattedCookies.json';
+    const cookieData = await fsPromises.readFile(filePath, 'utf8');
+    let cookie = JSON.parse(cookieData).Cookie
+
     if (!isCaptcha) {
-        let capPng = await getCaptcha();
+        let capPng = await getCaptcha(cookie);
         captchaCode = await decodeCaptcha(capPng);
         isCaptcha = true
         if (captchaCode.length != 6) {
@@ -201,8 +299,7 @@ async function processPan(PAN, company_id) {
 
     }
     if (captchaCode != 0) {
-        data = await executeCmd(company_id, PAN, captchaCode);
-        data = scrapeResultPage(data)
+        data = await getIPOStatus(PAN, company_id, captchaCode)
         return data;
     } else {
         return null
