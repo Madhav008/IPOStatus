@@ -159,6 +159,8 @@ const scrapeResultPage = (resp) => {
     const data = getIPOAllotment(resp)
     if (msg == "ShowMessage function not found.") {
         return data;
+    } else if (msg.toLowerCase().includes("valid pan")) {
+        return { Category: "Please enter a valid PAN" };
     } else if (msg.toLowerCase().includes("captcha")) {
         return { Category: "Captcha is not valid" };
     } else if (msg.includes("PAN details  not available.")) {
@@ -488,7 +490,7 @@ const karvyCaptcha = async (PAN, company_id = "INOL~inox_indiapleqfv2~0~20/12/20
                 failedPandata.push({ ...data, PAN: Pan });
             } else if (data && data.Category && data.Category.includes("PAN details not available.")) {
                 processPandata.push({ ...data, PAN: Pan });
-            } else if (data && data.Category.includes("ERROR")) {
+            } else if (data && data?.Category?.includes("ERROR")) {
                 failedPandata.push({ ...data, PAN: Pan })
             } else {
                 processPandata.push({ ...data, PAN: Pan });
