@@ -274,6 +274,8 @@ async function getIPOStatus(pan, company, captcha) {
 
 const getCaptcha = async (cookie) => {
     try {
+
+        console.log("Bash Command : ", `bash sites/captcha.sh "${cookie}"`)
         const result = execSync(`bash sites/captcha.sh ${cookie}`, { encoding: 'utf-8' });
         return result.trim();
     } catch (error) {
@@ -364,7 +366,7 @@ async function decodeCaptcha(img) {
     return captchaCode
 }
 
-const karvyCaptcha = async (PAN = ["AEMPO5769C", "JJZPK6464B",], company_id = "INNC~innova_captabltd~0~27/12/2023~27/12/2023~EQT") => {
+const karvyCaptcha = async (PAN = ["AEMPO5769C", "JJZPK6464B",], company_id = "SAAI~sameeraagro_infraltd~0~28/12/2023~28/12/2023~EQT") => {
 
     const processPandata = [];
 
