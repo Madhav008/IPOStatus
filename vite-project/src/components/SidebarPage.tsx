@@ -17,10 +17,10 @@ const sidebarNavItems = [
         title: "Admin Pannel",
         href: "/admin",
     },
-    // {
-    //     title: "Notifications",
-    //     href: "/home/notifications",
-    // },
+    {
+        title: "IPO List",
+        href: "/ipolist",
+    },
     // {
     //     title: "Display",
     //     href: "/home/display",

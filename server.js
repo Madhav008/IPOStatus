@@ -56,6 +56,8 @@ app.use('/getExcel', excelRoutes)
 import cronRoutes from './routes/cronRoutes.js';
 app.use('/cron', cronRoutes)
 
+import ipoRoutes from './routes/ipoRoutes.js';
+app.use('/ipo', ipoRoutes)
 
 
 app.listen(port, () => {

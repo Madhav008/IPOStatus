@@ -55,7 +55,7 @@ const Home = () => {
 
     const handleIpoStatusData = (data: any) => {
         setFailed(data.failed_data.length)
-        settotal(data.failed_data.length + data.result.length)
+        settotal(data.result.length)
         SetAlloted(0)
         SetNotAlloted(0)
         getProfile()
@@ -95,6 +95,18 @@ const Home = () => {
                 }
             });
         }
+
+        if (data.site === 'Purva') {
+            logAnalyticsEvent("PURVA DATA REQUESTED ");
+
+            data.result.forEach((ele: any) => {
+                if (ele.Alloted && ele.Alloted != "0") {
+                    SetAlloted((prevAlloted: any) => prevAlloted + 1);
+                } else {
+                    SetNotAlloted((prevNotAlloted: any) => prevNotAlloted + 1)
+                }
+            });
+        }
     }
 
 
@@ -122,7 +134,7 @@ const Home = () => {
                                     <SelectItem value="Linkintime">Linkin Time</SelectItem>
                                     <SelectItem value="Bigshare">Big Share</SelectItem>
                                     <SelectItem value="Karvy">Karvy</SelectItem>
-                                    <SelectItem value=".">More Sites Comming Soon...</SelectItem>
+                                    <SelectItem value="Purva">Purva</SelectItem>
                                 </SelectGroup>
                             </SelectContent>
                         </Select>

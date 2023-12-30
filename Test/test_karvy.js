@@ -13,7 +13,9 @@ const scrapeResultPage = (resp) => {
     const data = getIPOAllotment(resp)
     if (msg == "ShowMessage function not found.") {
         return data;
-    } else if (msg.toLowerCase().includes("captcha")) {
+    } else if (msg.toLowerCase().includes("valid pan")) {
+        return { Category: "Please enter a valid PAN" };
+    }else if (msg.toLowerCase().includes("captcha")) {
         return { Category: "Captcha is not valid" };
     } else if (msg.includes("PAN details  not available.")) {
         return { Category: "PAN details  not available." };
@@ -69,7 +71,6 @@ function decodeMessaage(html) {
 
     // Extract the ShowMessage function and its arguments using a regular expression
     const regexResult = /ShowMessage\('([^']+)',\s*'([^']+)'\)/.exec(scriptContent);
-
     if (regexResult && regexResult[1] && regexResult[2]) {
         const functionName = 'ShowMessage';
         const argument1 = regexResult[1];
@@ -182,7 +183,7 @@ async function formatCookies() {
 }
 
 // Example usage:
-formatCookies();
+// formatCookies();
 
 async function readHeaders() {
     //get the cookie 
@@ -366,7 +367,7 @@ async function decodeCaptcha(img) {
     return captchaCode
 }
 
-const karvyCaptcha = async (PAN = ["AEMPO5769C", "JJZPK6464B",], company_id = "SAAI~sameeraagro_infraltd~0~28/12/2023~28/12/2023~EQT") => {
+const karvyCaptcha = async (PAN = ["AAFHG0I54C", "AEMPO5769C", "JJZPK6464B",], company_id = "SAAI~sameeraagro_infraltd~0~28/12/2023~28/12/2023~EQT") => {
 
     const processPandata = [];
 

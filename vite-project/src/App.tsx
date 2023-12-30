@@ -11,6 +11,7 @@ import Home from './Pages/Home';
 import AdminPage from './Pages/AdminPage';
 import Footer from './components/Footer';
 import { logAnalyticsEvent } from './store/firebase';
+import IpoPage from './Pages/IpoPage';
 
 
 function App() {
@@ -38,6 +39,8 @@ function App() {
               <Route path='/home' element={<Home />} />
               <Route path='/admin' element={<AdminPage />} />
               <Route path='/account' element={<AccountPage />} />
+              <Route path='/ipolist' element={<IpoPage />} />
+
             </Route>
           </Routes>
         </Router>

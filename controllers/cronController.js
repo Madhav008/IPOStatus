@@ -9,6 +9,7 @@ import { XMLParser } from 'fast-xml-parser'
 import { logger } from '../logger.js';
 import { getAllUser, updateUserCount } from './pancountController.js';
 import { formatCookies } from './headersController.js';
+import { getPurvaIpoList } from '../sites/purva.js';
 
 const parser = new XMLParser()
 let cronJob;
@@ -241,6 +242,14 @@ const getIpoListData = async (sitename) => {
             return resMap;
         } else if (sitename === 'Karvy') {
             var result = await getKarvyIpoList();
+            result = result.slice(1);
+            const resMap = result.map((e) => ({
+                companyname: e.split("--")[0],
+                company_id: e.split("--")[1]
+            }));
+            return resMap;
+        } else if (sitename === 'Purva') {
+            var result = await getPurvaIpoList();
             result = result.slice(1);
             const resMap = result.map((e) => ({
                 companyname: e.split("--")[0],

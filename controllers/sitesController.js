@@ -9,6 +9,8 @@ import asyncHandler from 'express-async-handler'
 import path from 'path';
 import { logger } from '../logger.js'
 import { User } from '../Models/userModel.js';
+import jwt from 'jsonwebtoken'
+import { getPurvaIpoData, getPurvaIpoList } from '../sites/purva.js';
 const publicDirectoryPath = path.join('uploads');
 
 
@@ -85,6 +87,27 @@ const getIpoList = asyncHandler(async (req, res) => {
                 const newCompany = new company({
                     company_list: resMap,
                     site_name: "Karvy",
+                });
+                await newCompany.save();
+                res.status(200).send(resMap);
+            } else {
+                res.status(200).json(existingCompany.company_list)
+            }
+        } catch (error) {
+
+            console.error('Error:', error);
+        }
+    } else if (sitename === 'Purva') {
+        try {
+            const existingCompany = await company.findOne({ site_name: 'Purva' });
+            if (!existingCompany) {
+                var result = await getPurvaIpoList();
+                const resMap = result.map((e) => {
+                    return { companyname: e.split("--")[1], company_id: e.split("--")[0] }
+                })
+                const newCompany = new company({
+                    company_list: resMap,
+                    site_name: "Purva",
                 });
                 await newCompany.save();
                 res.status(200).send(resMap);
@@ -301,7 +324,7 @@ const getlinkintimeData = asyncHandler(async (req, res) => {
                     }
                 } else {
                     console.log("No able to parse this PAN: " + pan);
-                    panList.push({ Pan: pan, Qty: "Not Able to get the data!!" });
+                    panList.push({ Pan: pan, Qty: "Error in getting the data!!" });
                     failedPans.push(pan);
                 }
             } catch (error) {
@@ -323,15 +346,81 @@ const getlinkintimeData = asyncHandler(async (req, res) => {
 
 
 
+const getpurvaData = asyncHandler(async (req, res) => {
+
+    const { clientId } = req.body;
+
+    if (!clientId) {
+        return res.status(400).json({ error: 'clientId is required in the request body' });
+    }
+
+    // Check if a file was uploaded
+    if (!req.files || Object.keys(req.files).length === 0) {
+        return res.status(400).json({ error: 'No file uploaded' });
+    }
+    // Access the uploaded file
+    const uploadedFile = req.files.file; // Assuming the file input has the name 'file'
+    // Read the Excel file
+    const workbook = xlsx.read(uploadedFile.data, { type: 'buffer' });
+    // Assuming your data is in the first sheet (change as needed)
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    // Find the column index of the PAN column
+    const panColumnIndex = findColumnIndex(sheet, 'PAN');
+    if (panColumnIndex === -1) {
+        return res.status(400).json({ error: 'PAN NO column not found' });
+    }
+    // Collect all PANs in the sheet
+    const range = xlsx.utils.decode_range(sheet['!ref']);
+    const panList = [];
+    const failedPans = [];
+    const id = uuidv4()
+    const user = await getUser(req);
+    let count = user.count;
+    for (let rowNum = range.s.r + 1; rowNum <= range.e.r; rowNum++) {
+        const cellAddress = { c: panColumnIndex, r: rowNum };
+        const cellRef = xlsx.utils.encode_cell(cellAddress);
+        const pan = sheet[cellRef] ? sheet[cellRef].v : null;
+        if (pan) {
+             try {
+                const data = await getPurvaIpoData(pan.replace(/\s/g, ''), clientId);
+                var result = {
+                    Pan: data['Pan No'],
+                    Qty: data['Shares Allotted'],
+                    Name: data['Name'],
+                    'Shares Applied': data['Shares Applied'],
+                    Category: data.Category,
+                }
+                count--;
+                panList.push(result);
+
+            } catch (error) {
+                console.log(error);
+                panList.push({ Pan: pan, Qty: "Not Able to get the data!!" });
+                failedPans.push(pan);
+            }
+        }
+    }
+    await updateUser(req, count)
+    // Create a new workbook and worksheet for successful PANs
+    const resultWorkbook = xlsx.utils.book_new();
+    const resultWorksheet = xlsx.utils.json_to_sheet(panList.flatMap(item => (item)));
+    xlsx.utils.book_append_sheet(resultWorkbook, resultWorksheet, 'ResultSheet');
+    const resultFileName = `PurvaIpoStatus_${id}.xlsx`;
+    xlsx.writeFile(resultWorkbook, `./uploads/${resultFileName}`);
+    res.status(200).json({ success: `/download/${resultFileName}`, result: panList, failed_data: failedPans, });
+})
+
+
 export {
     getbigshareData,
     getlinkintimeData,
     getKarvyData,
+    getpurvaData,
     downloadFile,
     getIpoList
 }
 
-import jwt from 'jsonwebtoken'
 
 async function getUser(req) {
     let token;
@@ -371,7 +460,7 @@ async function updateUser(req, count) {
             // Check if the user was found and updated
             if (updatedUser) {
                 console.log('User count updated:', updatedUser);
-                logger.info('User count updated: '+ updatedUser);
+                logger.info('User count updated: ' + updatedUser);
 
             } else {
                 console.log('User not found');

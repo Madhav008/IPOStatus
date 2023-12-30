@@ -96,6 +96,10 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
         return getIpoData(url);
     };
 
+    const getPurvaIpoData = async () => {
+        const url = `Purva`;
+        return getIpoData(url);
+    };
     const handleFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files.length > 0) {
             setFile(event.target.files[0]);
@@ -138,6 +142,18 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ loading, ipoList, selectedSit
                     const ldata = await getKarvyIpoData();
                     setData(ldata)
                     handleIpoStatusData({ site: "Karvy", ...ldata })
+                    toast.dismiss(loadingToastId);
+                    toast.success("Data Fetched Successfully")
+                } catch (error) {
+                    toast.dismiss(loadingToastId);
+                    console.error('Error while fetching data:', error);
+                    toast.error('Error while fetching data. Please try again.');
+                }
+            } else if (selectedSite === 'Purva') {
+                try {
+                    const ldata = await getPurvaIpoData();
+                    setData(ldata)
+                    handleIpoStatusData({ site: "Purva", ...ldata })
                     toast.dismiss(loadingToastId);
                     toast.success("Data Fetched Successfully")
                 } catch (error) {
