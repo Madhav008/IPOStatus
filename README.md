@@ -40,19 +40,26 @@
     [*] Added realtime analytics 
     [*] Made a PDF
     [*] Made a performa
+    [*] Add the cron job to reset the headers
+    [*] Add the Purva
+    
 
+    [*] Add the upcomming ipo list
+        [] Add the graph
+        [] Add the details of the IPO
+
+    [] Add the profile page for the user
+    [] Add the Skyline
     [] Give the headline for count error 
     [] Add a emergency line that it's not working now or in maitainace
 
-    [] Add the cron job to reset the headers
     [] Add the red color if there is the reason in excel
     
     [] Send the checked data as a stream
-    [] Add the Purva
-    [] Add the Skyline
 
 
 #   Unknown Features
+    [] Add the ads section to advertize the new feature
     [] Create a formater for formating the excel in desired format
     [] Add the UI to check alloted and not alloted
     [] Check the Files Parllelly
@@ -61,6 +68,8 @@
     [*] Create a fast way to upload the excel in database
 
 #   Bugs
+    [*] When the Error in procces it count in not allotted also 
+        [*] Total is also comming two times
     [*] Add the check if the user have less then 100 pan count 
     [*] Need to change the headears periodicaly in karvy bash scripts karvy.sh and captcha.sh
     [*] Need to add the check for data.category.include error when Show message (Pan data not available )
