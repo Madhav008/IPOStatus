@@ -42,11 +42,11 @@ const SidebarPage = ({ children }: any) => {
     return (
 
 
-        <div className="space-y-6 p-10 pb-16">
-            <div className="space-y-0.5 flex align-middle  items-center justify-between">
+        <div className="p-6 w-full">
+            <div className=" flex items-center justify-between m-auto">
 
                 <div>
-                    <div className="sm:col-span-2 flex">
+                    <div className="sm:col-span-2 flex ">
                         <a href="/" aria-label="Go home" title="Company" className="inline-flex items-center">
                             <svg className="w-8 text-deep-purple-accent-400" viewBox="0 0 24 24" stroke-linejoin="round" stroke-width="2" stroke-linecap="round" stroke-miterlimit="10" stroke="currentColor" fill="none">
                                 <rect x="3" y="1" width="7" height="12"></rect>
@@ -54,7 +54,7 @@ const SidebarPage = ({ children }: any) => {
                                 <rect x="14" y="1" width="7" height="6"></rect>
                                 <rect x="14" y="11" width="7" height="12"></rect>
                             </svg>
-                            <span className="ml-2 text-xl font-bold tracking-wide uppercase">IPO STATUS CHECK</span>
+                            <span className="ml-2 text-xs md:text-base font-bold tracking-wide uppercase">IPO STATUS CHECK</span>
                         </a>
 
                     </div>
@@ -64,11 +64,11 @@ const SidebarPage = ({ children }: any) => {
                     </p> */}
                 </div>
 
-                <div className='flex gap-2 font-md'>
+                <div className='flex gap-2 font-md  justify-between  flex-wrap ml-2 text-sm md:text-base'>
                     <div className='flex flex-col'>
-                        <span className='font-bold font-mono'>
-                            <span >Daily Count</span>
-                            <span className='font-bold  text-green-500 p-2'>
+                        <span className='font-bold font-mono flex items-center text-center justify-center '>
+                            <span >Daily Count:</span>
+                            <span className='font-bold  text-green-500 px-2'>
                                 {user?.count}
                             </span>
                         </span>
@@ -80,7 +80,7 @@ const SidebarPage = ({ children }: any) => {
                         </span>
 
                     </div>
-                    <span className='ml-6 font-bold '>Welcome {user?.name}</span>
+                    <span className='ml-0 md:ml-6 font-bold'>Welcome {user?.name}</span>
                 </div>
             </div>
             <Separator className="my-6" />

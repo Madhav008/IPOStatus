@@ -13,7 +13,4 @@ router.get('/get/view/:id', protect, getIpoGraph)
 
 
 
-
-
-
 export default router

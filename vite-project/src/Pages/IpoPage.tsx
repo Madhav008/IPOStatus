@@ -11,7 +11,6 @@ const IpoPage = () => {
         const res = await ipoStatusApi.getlist()
         if (res.data.status) {
             setIpolist(res.data.data);
-            console.log(res.data.data)
         }
     }
 
@@ -22,12 +21,12 @@ const IpoPage = () => {
     return (
         <SidebarPage>
             <div className="flex items-center justify-center w-full h-[70vh]">
-                <div className="rounded-xl border bg-card text-card-foreground shadow w-full">
+                <div className="rounded-xl border bg-card text-card-foreground shadow ">
                     <div className="flex flex-col space-y-1.5 p-6">
                         <h3 className="font-semibold leading-none tracking-tight">IPO LIST</h3>
                         <p className="text-sm text-muted-foreground"> Mainline and SME IPO List.</p>
                     </div>
-                    <div className="p-6 pt-0 grid gap-6 max-h-[60vh] overflow-auto">
+                    <div className="p-6 pt-0 grid gap-6 max-h-[60vh] overflow-auto ">
                         {ipolist.map((ipo: any) => (
                             <Card className="w-full">
                                 <div key={ipo?.id} className=" flex flex-col items-start">
@@ -49,19 +48,19 @@ const IpoPage = () => {
                                         </div>
                                     </div>
                                     <Separator className="my-4 w-full" />
-                                    <div className="mb-4 flex items-center justify-start gap-4 px-6 w-full">
+                                    <div className="mb-4 flex items-center justify-start gap-4 px-6 w-full text-sm md:text-lg">
                                         <div className="w-full" >
                                             <div className="flex justify-between w-full items-center">
                                                 <div>Allotment Date *</div>
                                                 <div>{ipo.allotment_date}</div>
 
                                             </div>
-                                            <div className="flex justify-between m-auto w-full items-center">
+                                            <div className="flex justify-between m-auto w-full items-center text-sm md:text-lg">
                                                 <div>Listing Date *</div>
                                                 <div>{ipo.listing_date}</div>
 
                                             </div>
-                                            <div className="flex justify-between  m-auto items-center">
+                                            <div className="flex justify-between  m-auto items-center text-sm md:text-lg">
                                                 <div>Est. Profit **</div>
                                                 <div>
                                                     {`${ipo.premium * ipo.lot_size} (${ipo.premium_percentage?.toFixed(2)}%)`}
