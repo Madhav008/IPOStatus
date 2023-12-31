@@ -183,7 +183,7 @@ async function formatCookies() {
 }
 
 // Example usage:
-// formatCookies();
+formatCookies();
 
 async function readHeaders() {
     //get the cookie 
