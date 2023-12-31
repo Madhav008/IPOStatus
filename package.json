@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "start": "NGROK_AUTHTOKEN=256DG9Ka8s339wk9Ys3fr_3xNF6Mdti9T6nfZG98Zv node server.js",
+    "start": "node server.js",
     "dev": "node server.js"
   },
   "dependencies": {
