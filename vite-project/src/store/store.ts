@@ -1,11 +1,14 @@
 // store.ts
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './authSlice';
+import ipolistReducer from './ipoSlice';
+
 
 const store = configureStore({
     reducer: {
         auth: authReducer,
         // add other reducers here
+        ipolist: ipolistReducer
     },
 });
 

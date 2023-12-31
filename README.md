@@ -42,23 +42,23 @@
     [*] Made a performa
     [*] Add the cron job to reset the headers
     [*] Add the Purva
+    [*] Add the upcomming ipo list
     
 
-    [*] Add the upcomming ipo list
-        [] Add the graph
-        [] Add the details of the IPO
+    [] Add the graph
+    [] Add the details of the IPO
+    [] Add the Skyline
 
     [] Add the profile page for the user
-    [] Add the Skyline
     [] Give the headline for count error 
     [] Add a emergency line that it's not working now or in maitainace
 
-    [] Add the red color if there is the reason in excel
     
-    [] Send the checked data as a stream
 
 
 #   Unknown Features
+    [] Send the checked data as a stream
+    [] Add the red color if there is the reason in excel
     [] Add the ads section to advertize the new feature
     [] Create a formater for formating the excel in desired format
     [] Add the UI to check alloted and not alloted

@@ -79,22 +79,6 @@ const getIpoGraph = asyncHandler(async (req, res) => {
         };
 
 
-        const resp = await axios.request(config)
-
-        const html = resp.data;
-        const $ = cheerio.load(html)
-
-        const scriptTag = $('script').last(); // Assuming the chart script is the last script tag
-
-        // Extract the content inside the script tag
-        const scriptContent = scriptTag.html();
-
-        // Parse the script content to extract the chart data
-        const match = /data:\s*(\[.*?\])/s.exec(scriptContent);
-        const chartData = match ? JSON.parse(match[1]) : null;
-
-        // Print or use the extracted chart data
-        logger.info({ message: chartData });
 
         const cachedata = await redisClient.get(`ipolist_view${id}`);
 
@@ -104,11 +88,25 @@ const getIpoGraph = asyncHandler(async (req, res) => {
         } else {
             console.log("CACHE MISS")
             const resp = await axios.request(config)
-            await redisClient.setEx(`ipolist_view${id}`, 360, JSON.stringify(resp.data));
-            res.status(200).json(resp.data)
-        }
 
-        res.status(200).json(chartData)
+            const html = resp.data;
+            const $ = cheerio.load(html)
+            const scriptTag = $('script').last(); // Assuming the chart script is the last script tag
+
+            // Extract the content inside the script tag
+            const scriptContent = scriptTag.html();
+
+            // Parse the script content to extract the chart data
+            const match = /data:\s*(\[.*?\])/s.exec(scriptContent);
+            const chartData = match ? JSON.parse(match[1]) : null;
+
+            // Print or use the extracted chart data
+            logger.info({ message: chartData });
+
+
+            await redisClient.setEx(`ipolist_view${id}`, 360, JSON.stringify(chartData));
+            res.status(200).json(chartData)
+        }
 
     } catch (error) {
         console.error('Error:', error);
